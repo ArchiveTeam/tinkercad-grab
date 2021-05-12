@@ -6,3 +6,6 @@ STOP
 BANNED
 data/
 test/
+Pipfile
+Pipfile.lock
+.idea

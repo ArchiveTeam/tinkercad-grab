@@ -37,6 +37,14 @@ set_new_item = function(url)
     return
   end
 
+  if url_sources[urlparse.unescape(url)] ~= nil then
+    current_item_type = url_sources[urlparse.unescape(url)]["type"]
+    current_item_value = url_sources[urlparse.unescape(url)]["value"]
+    print_debug("Used unescaped form to set item")
+    print_debug("Setting current item to " .. current_item_type .. ":" .. current_item_value .. " based on sources table")
+    return
+  end
+
   -- Explicitly setting
   local user = string.match(url, "^https?://bintray%.com/([^/%?#]+)")
   if user ~= nil and user ~= "user" then -- There is a pseudo-user called user, which owns repos, but is also used
@@ -57,6 +65,9 @@ set_derived_url = function(dest)
   if url_sources[dest] == nil then
     print_debug("Derived " .. dest)
     url_sources[dest] = {type=current_item_type, value=current_item_value}
+    if urlparse.unescape(dest) ~= dest then
+      set_derived_url(urlparse.unescape(dest))
+    end
   else
     if url_sources[dest]["type"] ~= current_item_type
       or url_sources[dest]["value"] ~= current_item_value then
@@ -485,7 +496,7 @@ wget.callbacks.write_to_warc = function(url, http_stat)
     return false
   end
   return true
-  end
+end
 
 wget.callbacks.before_exit = function(exit_status, exit_status_string)
   if abortgrab == true then
