@@ -78,6 +78,10 @@ set_derived_url = function(dest)
   end
 end
 
+discover_item = function(item_type, item_name)
+  discovered_items[item_type .. ":" .. item_name] = true
+end
+
 
 if urlparse == nil or http == nil then
   io.stdout:write("socket not corrently installed.\n")
@@ -107,14 +111,6 @@ end
 
 io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
 
-p_assert = function(v)
-  if not v then
-    print("Assertion failed - aborting item")
-    print(debug.traceback())
-    abortgrab = true
-  end
-end
-
 do_debug = true
 print_debug = function(a)
     if do_debug then
@@ -127,74 +123,6 @@ print_debug("This grab script is running in debug mode. You should not see this 
 allowed = function(url, parenturl)
   assert(parenturl ~= nil)
 
-  -- For speed/my sanity during testing, don't get alternative sorted orders
-  if string.match(url, "^https?://[^/]*%.?bintray%.com/.+order=asc&")
-    or string.match(url, "^https?://[^/]*%.?bintray%.com/.+order=desc&") then
-    --print_debug("Rejected sorted index " .. url)
-    return false
-  end
-
-  -- Reject colon URLs on dl.
-  if string.match(url, "^https?://dl%.bintray%.com/.+/%:[^/]+/?$") then
-    --print_debug("Rejecting for colon " .. url)
-    return false
-  end
-
-  -- Other
-  if string.match(url, "^https?://[^/]*%.?bintray%.com/.*/reportLicense") -- Redirects to login
-    or string.match(url, "^https?://[^/]*%.?bintray%.com/.*/edit") -- Redirects to login
-    or string.match(url, "^https?://[^/]*%.?bintray%.com/.*/%?versionPath=") -- TODO remove for production? Seems harmless besides taking time
-    or string.match(url, "^https?://[^/]*%.?bintray%.com/login%?")
-  then
-    --print_debug("Rejected for other " .. url)
-    return false
-  end
-
-
-
-  if (string.match(url, "^https?://[^/]+%.bintray%.com/") or string.match(url, "^https?://bintray%.com/"))
-          and current_item_type == "user" then
-    --print_debug("User path match on " .. url)
-    -- Experimental: More lenient (i.e. arkiver-style) URL-matching; leave rest in for discovery
-    for test in string.gmatch(url, "[^/]+") do
-      if test == current_item_value then
-        --print_debug("Lenient true " .. url)
-        return true
-      end
-    end
-
-    local user = string.match(url, "^https?://bintray%.com/([^/%?#]+)")
-    if user == nil then
-      user = string.match(url, "^https?://bintray%.com/package/[^/]+/([^/%?#]+)")
-    end
-    if user == nil then
-      user = string.match(url, "^https?://[^/]+%.bintray%.com/([^/%?#]+)") -- will also catch dl.
-    end
-    if user == nil then
-      user = string.match(url, "^https?://[^/]+%.bintray%.com/package/[^/]+/([^/%?#]+)")
-    end
-
-    if user == current_item_value then
-      --print_debug("Strict CIV match " .. url)
-      return true
-    else
-      if user ~= nil and string.match(user, "^[a-zA-Z0-9%-_]+$")
-              and user ~= "assets" and user ~= "payment" and user ~= "login"
-              and user ~= "signup" and user ~= "package" and user ~= "docs"
-              and user ~= "account" and user ~= "search" and user ~= "bintray-views" and user ~= "repo" then
-        local item = "user:" .. user
-        if discovered_items[item] == nil then
-          print_debug("Add " .. item .. " for discovery")
-          discovered_items[item] = true
-        end
-      end
-      --print_debug("Strict CIV mismatch " .. url)
-      return false
-    end
-  end
-
-  -- TODO to prevent user:account, make sure general comes before backfeed intake
-
   local tested = {}
   for s in string.gmatch(url, "([^/]+)") do
     if tested[s] == nil then
@@ -205,24 +133,6 @@ allowed = function(url, parenturl)
     end
     tested[s] = tested[s] + 1
   end
-
-    if string.match(url, "^https?://[^/]+%.bintray%.com/")
-            or string.match(url, "^https?://bintray%.com/")
-            or string.match(url, "https?://secure%.gravatar%.com/avatar/")
-            or string.match(url, "https?://bintray[^/]+%.amazonaws%.com/") then
-      return true
-    else
-      return false
-    end
-  --[[
-    if current_item_type == "user" then
-      return string.match(url, "^https?://bintray%.com/([^/]+)") == current_item_value
-    elseif current_item_type == nil then
-      return false
-    else
-      assert(false, "Bad item type in match(???)")
-    end
-  end]]
 
   assert(false, "This segment should not be reachable")
 end
@@ -249,7 +159,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   downloaded[url] = true
 
   local function check(urla, force)
-    p_assert((not force) or (force == true)) -- Don't accidentally put something else for force
+    assert((not force) or (force == true)) -- Don't accidentally put something else for force
     local origurl = url
     local url = string.match(urla, "^([^#]+)")
     local url_ = string.match(url, "^(.-)%.?$")
@@ -314,36 +224,13 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
   end
 
-  html = nil
   local function load_html()
     if html == nil then
       html = read_file(file)
     end
   end
 
-  -- Extract nothing from the files themselves on the download site
-  if current_item_type == "user" and string.match(url, "^https?://dl%.bintray%.com/.*[^/]$") then
-    return {}
-  end
 
-
-  if current_item_type == "user" then
-    check("https://bintray.com/user/subjectNotificationsJson?username=" .. current_item_value, true)
-    check("https://bintray.com/" .. current_item_value .. "/repositoriesTemplate", true)
-    check("https://bintray.com/" .. current_item_value .. "/repositoriesTemplate?iterator=true", true)
-
-    if string.match(url, "^https?://dl%.bintray%.com/.*/$") then
-      load_html()
-      -- Queue URLs without :
-      print_debug("Queueing dl urls")
-      for newurl in string.gmatch(html, 'href=":?([^:"][^"]+)"') do
-        newurl = urlparse.absolute(url, newurl)
-        print_debug("Newurl is " .. newurl)
-        check(newurl)
-        print_debug("Queue " .. newurl)
-      end
-    end
-  end
   
 
   if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$")) then
@@ -381,10 +268,6 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
 
   if status_code >= 300 and status_code <= 399 then
     local newloc = urlparse.absolute(url["url"], http_stat["newloc"])
-    if string.match(newloc, "https?://[a-z0-9]+%.cloudfront%.net") then -- TODO file should pass
-      discovered_items["file:" .. url["url"]] = true
-      return wget.actions.EXIT
-    end
     if downloaded[newloc] == true or addedtolist[newloc] == true
             or not allowed(newloc, url["url"]) then
       tries = 0
@@ -413,8 +296,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
 
   -- Whitelist instead of blacklist status codes
   if status_code ~= 200 and status_code ~= 404 and not (status_code >= 300 and status_code <= 399) then
-    io.stdout:write("Server returned " .. http_stat.statcode .. " (" .. err .. "). Sleeping.\n")
-    io.stdout:flush()
+    print("Server returned " .. http_stat.statcode .. " (" .. err .. "). Sleeping.\n")
     do_retry = true
   end
 
@@ -424,8 +306,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
 
   if do_retry then
     if tries >= maxtries then
-      io.stdout:write("I give up...\n")
-      io.stdout:flush()
+      print("I give up...\n")
       tries = 0
       if not url_is_essential then
         return wget.actions.EXIT
@@ -457,13 +338,15 @@ wget.callbacks.finish = function(start_time, end_time, wall_time, numurls, total
       print("Would have sent discovered item " .. item)
     end
   else
-    to_send = nil
+    local to_send = nil
     for item, _ in pairs(discovered_items) do
+      assert(string.match(item, ":")) -- Message from EggplantN, #binnedtray (search "colon"?)
       if to_send == nil then
-        to_send = url
+        to_send = item
       else
         to_send = to_send .. "\0" .. item
       end
+      print("Queued " .. item)
     end
 
     if to_send ~= nil then
@@ -489,12 +372,6 @@ end
 
 wget.callbacks.write_to_warc = function(url, http_stat)
   set_new_item(url["url"])
-  if string.match(url["url"], "^https?://dl%.bintray%.com/.*[^/]$")
-    and http_stat["statcode"] >= 300 and http_stat["statcode"] <= 399
-    and string.match(http_stat["newloc"], "https?://[a-z0-9]+%.cloudfront%.net") then
-    print_debug("Not writing to warc")
-    return false
-  end
   return true
 end
 
