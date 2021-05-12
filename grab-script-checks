@@ -1,0 +1,114 @@
+format 0
+
+[[]]
+successful
+not regex .*view-source:.*
+not regex .{300,} # Huge URLs, incl. big JS libraries
+
+######################################################
+# user:
+[user:yipdw]
+some exact https://bintray.com/yipdw
+some exact https://bintray.com/yipdw/
+some exact https://bintray.com/yipdw/maven
+some exact https://bintray.com/yipdw/deb
+some exact https://bintray.com/yipdw/rpm
+some exact https://bintray.com/yipdw/generic
+some exact https://bintray.com/yipdw/registry
+some exact https://bintray.com/yipdw/repositoriesJSON
+some exact https://bintray.com/user/subjectNotificationsJson?username=yipdw
+some exact https://bintray.com/yipdw/repositoriesTemplate
+some exact https://bintray.com/yipdw/repositoriesTemplate?iterator=true
+some exact https://secure.gravatar.com/avatar/1e39068659020a59793626b09ed704ce?s=140&d=mp
+maxrequests 50
+
+
+
+[user:wangzw]
+some exact https://secure.gravatar.com/avatar/9d6bbf939f289075366b47ac547a7d0e?s=140&d=mp
+some exact https://bintray.com/wangzw
+some exact https://bintray.com/wangzw/repositoriesJSON
+
+some exact https://dl.bintray.com/wangzw/deb/
+some exact https://dl.bintray.com/wangzw/deb/dists/
+some exact https://dl.bintray.com/wangzw/deb/dists/trusty/contrib/binary-i386/
+
+
+
+
+[user:worldforge]
+# Example of a user: item that is a group
+some exact https://secure.gravatar.com/avatar/45170e02eb2d63b407581341516363ac?s=140&d=mp
+some exact https://bintray.com/worldforge/repositoriesJSON
+some exact https://bintray.com/worldforge/repositoriesTemplate
+some exact https://bintray.com/user/subjectNotificationsJson?username=worldforge
+some exact https://bintray.com/worldforge/repositoriesJSON
+some exact https://bintray-binary-objects-or-production.s3-accelerate.amazonaws.com/5a0ae92c6ce77eeeac8e3eb9120a17954a74736aaac10af36003706548588512
+
+# "Installers"
+some exact https://bintray.com/worldforge/installers
+some exact https://bintray.com/repo/buildSettings?repoPath=%2Fworldforge%2Finstallers
+some exact https://bintray.com/worldforge/installers/ember
+some exact https://bintray.com/package/buildSettings?pkgPath=%2Fworldforge%2Finstallers%2Fember
+some exact https://bintray.com/package/generalTab
+some exact https://bintray.com/package/readme/worldforge/installers/ember
+some exact https://bintray.com/package/reviews/worldforge/installers/ember
+some exact https://bintray.com/package/statistics/worldforge/installers/ember
+some regex https://bintray\.com/statistics/packageStatistics.*worldforge.*installers.*ember
+some regex https://bintray\.com/statistics/packageGeoStats.*.*worldforge.*installers.*ember
+some discovered user:erikogenvik
+some discovered file:https://dl.bintray.com/worldforge/installers/Ember-latest.exe
+some discovered file:https://dl.bintray.com/worldforge/installers/Ember-x86_64.AppImage
+
+# "Conan"
+some exact https://bintray.com/worldforge/worldforge-conan # NOTE this also does POST requests for pagination - be sure to get those
+some exact https://bintray.com/repo/buildSettings?repoPath=%2Fworldforge%2Fworldforge-conan
+some exact https://bintray.com/worldforge/worldforge-conan/libwfut%3Aworldforge # Page 1
+some exact https://bintray.com/worldforge/worldforge-conan/pcre%3A_ # Page 2
+some exact https://bintray.com/worldforge/worldforge-conan/tolua%2B%2B%3Aworldforge # Page 3
+
+# Tinyxml (in conan)
+some exact https://bintray.com/package/readme/worldforge/worldforge-conan/tinyxml%3Aworldforge
+some exact https://bintray.com/package/release/worldforge/worldforge-conan/tinyxml%3Aworldforge
+some exact https://bintray.com/package/statistics/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable
+some regex https://bintray\.com/statistics/versionStatistics\?startDate=2021-03-26.*2\.6\.3.*
+some regex https://bintray\.com/statistics/versionGeoStats\?startDate=2021-03-26.*2\.6\.3.*
+
+# Files of a particular version, in the XHR navigator (in tinyxml)
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable?basePath=
+
+# Moving around in the non-JS, but not dl., files navigator (in tinyxml)
+# I do not understand some of this (for example, the pseudo-directory "0", which is only sometimes used)
+# But recursion should fix it anyway
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable?order=asc&sort=name&basePath=worldforge%2Ftinyxml%2F2.6.2%2Fstable&tab=files
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable?order=asc&sort=name&basePath=worldforge%2Ftinyxml%2F2.6.2%2Fstable%2F0&tab=files
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable?order=asc&sort=name&basePath=worldforge&tab=files
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable?order=asc&sort=name&basePath=worldforge%2Ftinyxml%2F2.6.2%2Fstable%2F0%2Fpackage&tab=files
+some exact https://bintray.com/version/files/worldforge/worldforge-conan/tinyxml%3Aworldforge/2.6.2%3Astable?order=asc&sort=name&basePath=worldforge%2Ftinyxml%2F2.6.2%2Fstable%2F0%2Fpackage%2Fabd3ca9581f5ec3d6672fa2ee8818b1f09dbb082%2F0&tab=files
+# download_file is also used for the JS navigator. These should just redirect to the files on dl.
+some exact https://bintray.com/worldforge/worldforge-conan/download_file?file_path=worldforge%2Ftinyxml%2F2.6.2%2Fstable%2F0%2Fpackage%2Fabd3ca9581f5ec3d6672fa2ee8818b1f09dbb082%2F0%2Fconanmanifest.txt
+some exact https://bintray.com/worldforge/worldforge-conan/download_file?file_path=worldforge%2Ftinyxml%2F2.6.2%2Fstable%2F0%2Fpackage%2Fabd3ca9581f5ec3d6672fa2ee8818b1f09dbb082%2F0%2F.timestamp
+some exact https://bintray.com/worldforge/worldforge-conan/download_file?file_path=worldforge%2Ftolua%2B%2B%2F1.0.93%2Fstable%2F0%2Fpackage%2Fa96698311a6ed18fe8c847ec3f6e120840d2e5a8%2F0%2Fconan_package.tgz
+
+some exact https://bintray.com/artifact/treeBrowse # POST navigation endpoint used by the JS navigator, perhaps just
+# queue this from the non-JS navigator
+
+# Files on dl. (in tinyxml)
+# Colons are an anti-crawler measure
+some exact https://dl.bintray.com/worldforge/worldforge-conan/worldforge/tinyxml/2.6.2/
+some exact https://dl.bintray.com/worldforge/worldforge-conan/worldforge/tinyxml/2.6.2/testing/
+some exact https://dl.bintray.com/worldforge/worldforge-conan/worldforge/tinyxml/2.6.2/testing/0/export/conanfile.py
+not exact https://dl.bintray.com/worldforge/worldforge-conan/worldforge/tinyxml/2.6.2/testing/0/export/:conanfile.py
+not exact https://dl.bintray.com/worldforge/worldforge-conan/worldforge/:lua/
+not regex https://dl\.bintray\.com/.*/:.* # Note that there can be colons in the middle, e.g. wfmath:worldforge
+some exact https://dl.bintray.com/worldforge/worldforge-conan/worldforge/cegui/0.8.7/testing/0/package/bb2ab5f52bfa0113ea8948247a9a68789b1ee4a5/0/
+# This next package is a big file, so it redirects to AWS; get it but do not get the AWS copy; instead queue as an URL
+# As (IIRC) the AWS url expires after a period, this means that the dl. URL will be gotten twice
+some exact https://dl.bintray.com/worldforge/worldforge-conan/worldforge/cegui/0.8.7/testing/0/package/bb2ab5f52bfa0113ea8948247a9a68789b1ee4a5/0/conan_package.tgz
+some discovered file:https://dl.bintray.com/worldforge/worldforge-conan/worldforge/cegui/0.8.7/testing/0/package/bb2ab5f52bfa0113ea8948247a9a68789b1ee4a5/0/conan_package.tgz
+not regex https?://[^/.]\.cloudfront\.net/.* # Not to be confused with https://bintray-binary-objects-or-production.s3-accelerate.amazonaws.com/, which hosts user profiles etc.
+
+
+# TODO do not queue files from general mirrors
