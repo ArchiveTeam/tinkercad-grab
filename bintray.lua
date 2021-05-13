@@ -24,6 +24,7 @@ local current_item_type = nil
 local current_item_value = nil
 
 local user_suffixes = {} -- Append these to the user ID (item value) to get one form of URL. May be empty.
+local user_last_activity_time = {} -- Timestamps of last user activity. user IDs -> timestamps
 
 io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
 
@@ -101,6 +102,8 @@ set_derived_url = function(dest)
 end
 
 discover_item = function(item_type, item_name)
+  assert(item_type)
+  assert(item_name)
   discovered_items[item_type .. ":" .. item_name] = true
 end
 
@@ -312,13 +315,14 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     if json["screen_name"] ~= nil then
       local filtered_name = get_slug_version(json["screen_name"])
       assert(filtered_name)
-      if filtered_name ~= "" then
-        user_suffixes[current_item_value] = "-" .. filtered_name
-      else
-        user_suffixes[current_item_value] = ""
-      end
-      check("https://www.tinkercad.com/users/" .. current_item_value .. "-" .. filtered_name, true)
+      user_suffixes[current_item_value] = "-" .. filtered_name
+    else
+      user_suffixes[current_item_value] = ""
     end
+    check("https://www.tinkercad.com/users/" .. current_item_value ..user_suffixes[current_item_value], true)
+
+    assert(json["mtime"])
+    user_last_activity_time[current_item_value] = tonumber(json["mtime"])
   end
 
   if (current_item_type == "user")
@@ -350,6 +354,8 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     and status_code == 200 then
     load_html()
     local json = JSON:decode(html)
+
+    -- Queue a next page if necessary
     print_debug("Have recognized")
     print_debug(json["limit"])
     print_debug(json["offset"])
@@ -357,6 +363,20 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     if json["limit"] + json["offset"] < json["totalCount"] then
       print_debug("Am queuing more")
       check((string.gsub(url, "offset=" .. tostring(json["offset"]), "offset=" .. tostring(json["offset"] + json["limit"]))))
+    end
+
+    -- Discover items
+    if json["designs"] ~= nil then
+      assert(user_last_activity_time[current_item_value])
+      for _, design in pairs(json["designs"]) do
+        -- If later than (a date slightly before) January 1, 2000 (the cutoff), queue as low-priority
+        -- Nanoseconds
+        if user_last_activity_time[current_item_value] > 1577000000000000000 then
+          discover_item("submission-lp", design["id"])
+        else
+          discover_item("submission", design["id"])
+        end
+      end
     end
   end
 

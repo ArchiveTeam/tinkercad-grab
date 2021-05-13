@@ -15,6 +15,9 @@ not regex https?://tinkercad\.zendesk\.com/.*
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB-lucario-liz
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB
 some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t200.jpg # Avatar
+# More avatars
+some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t75.jpg
+some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t40.jpg
 
 # Listing submissions
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB?category=tinkercad&sort=likes&view_mode=default # Human-accessible page
@@ -33,4 +36,19 @@ some exact https://api-reader.tinkercad.com/api/search/designs?offset=0&limit=24
 some exact https://api-reader.tinkercad.com/api/search/blocks?offset=0&limit=24&type=codeblocks&sort=newest&userid=8kIV95Gu4GB
 some exact https://api-reader.tinkercad.com/api/search/blocks?offset=0&limit=24&type=codeblocks&sort=likes&userid=8kIV95Gu4GB
 
+# Thumbnails
+some exact https://csg.tinkercad.com/things/esC04tki7dP/t300-15.png?rev=1518008758710000000&s=&v=1
+some exact https://csg.tinkercad.com/things/elvwq5DU9ph/t300-15.png?rev=1496104094882000100&s=&v=1
+some exact https://csg.tinkercad.com/things/5qSrII7xYhy/t725.png?rev=1516236074941000200&s=&v=1 # Not sure what this is, but it shows up in the JSON
+
+# User data, queued items
+some exact https://api-reader.tinkercad.com/users/8kIV95Gu4GB
+
+some discovered submission:jNgfUvshMaQ
+some discovered submission:0aKazaF7rTS
+some discovered submission:d8GhQWPo5oW
+
 # TODO when to get https://api-reader.tinkercad.com/users (i.e. info on the currently logged-in user)?
+
+# TODO other types of submission on user list page
+# TODO active user
