@@ -55,8 +55,9 @@ if not WGET_AT:
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
 VERSION = '20210324.01'
-USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
-TRACKER_ID = 'bintray'
+#USER_AGENT = 'ArchiveTeam (https://wiki.archiveteam.org/; https://webirc.hackint.org/#ircs://irc.hackint.org/#tinkerhad)'
+USER_AGENT = 'Do not use this in production'
+TRACKER_ID = 'tinkercad'
 #TRACKER_HOST = 'legacy-api.arpa.li'
 TRACKER_HOST = "legacy-api.arpa.li"
 MULTI_ITEM_SIZE = 30
@@ -201,16 +202,15 @@ class WgetArgs(object):
 
         item_names_to_submit = item_names.copy()
         for item_name in item_names:
-            assert item_name not in {"user:account", "user:assets"}, "Doing this out of caution"
             wget_args.extend(['--warc-header', 'x-wget-at-project-item-name: '+item_name])
             wget_args.append('item-name://' + item_name)
             item_type, item_value = item_name.split(':', 1)
             if item_type == "user":
-                wget_args.extend(['--warc-header', 'bintray-user: ' + item_value])
-                wget_args.append(f'https://bintray.com/{item_value}')
-                wget_args.append(f'https://bintray.com/{item_value}/')
-            elif item_type == "url":
-                raise Exception("Encountered a file: item. Maybe it's safe to remove from item_name? Ask arkiver?")
+                wget_args.extend(['--warc-header', 'tinkercad-user: ' + item_value])
+                wget_args.append(f'https://www.tinkercad.com/users/{item_value}')
+            elif item_type == "submission":
+                wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
+                wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
             else:
                 raise ValueError('item_type not supported.')
 

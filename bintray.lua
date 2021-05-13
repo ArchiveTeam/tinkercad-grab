@@ -23,11 +23,25 @@ local url_sources = {}
 local current_item_type = nil
 local current_item_value = nil
 
+local options_downloaded = {} -- What URLS have had OPTIONS downloaded already
+
+io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
+
+do_debug = true
+print_debug = function(a)
+  if do_debug then
+    print(a)
+  end
+end
+print_debug("This grab script is running in debug mode. You should not see this in production.")
+
 set_new_item = function(url)
   -- 3 stages to my version of this:
   -- - url_sources (shows whence URLs were derived)
   -- - Explicit set based on URL
   -- - Else nil (i.e. unknown or do not care)
+
+  print_debug("Trying to set item on " .. url)
 
   -- Previous
   if url_sources[url] ~= nil then
@@ -46,9 +60,8 @@ set_new_item = function(url)
   end
 
   -- Explicitly setting
-  local user = string.match(url, "^https?://bintray%.com/([^/%?#]+)")
-  if user ~= nil and user ~= "user" then -- There is a pseudo-user called user, which owns repos, but is also used
-    -- as a path component of UI endpoints.
+  local user = string.match(url, "^https?://www%.tinkercad%.com/users/([^/%?#%-]+)$")
+  if user ~= nil then
     current_item_type = "user"
     current_item_value = user
     print_debug("Setting current item to user:" .. user .. " based on URL inference")
@@ -59,14 +72,20 @@ set_new_item = function(url)
   print_debug("Current item fell through")
   current_item_value = nil
   current_item_type = nil
+  assert(false, "This should not happen")
 end
 
 set_derived_url = function(dest)
   if url_sources[dest] == nil then
-    print_debug("Derived " .. dest)
+    --print_debug("Derived " .. dest)
     url_sources[dest] = {type=current_item_type, value=current_item_value}
     if urlparse.unescape(dest) ~= dest then
       set_derived_url(urlparse.unescape(dest))
+    end
+    -- Wget adds a "/" to the end of param- and fragment-less paths that don't already have one
+    local withsl = string.match(dest, '^([^%?#]+[^/])$')
+    if withsl ~= nil and withsl .. "/" ~= dest then
+      set_derived_url(withsl .. "/")
     end
   else
     if url_sources[dest]["type"] ~= current_item_type
@@ -89,13 +108,26 @@ if urlparse == nil or http == nil then
   abortgrab = true
 end
 
-for ignore in io.open("ignore-list", "r"):lines() do
-  downloaded[ignore] = true
-  if string.match(ignore, '^https:') then
-    downloaded[string.gsub(ignore, '^https', 'http', 1)] = true
-  elseif string.match(ignore, '^http:') then
-    downloaded[string.gsub(ignore, '^http:', 'https:', 1)] = true
+add_ignore = function(url)
+  if url == nil then -- For recursion
+    return
   end
+  if downloaded[url] ~= true then
+    downloaded[url] = true
+  else
+    return
+  end
+  add_ignore(string.gsub(url, '^https', 'http', 1))
+  add_ignore(string.gsub(url, '^http:', 'https:', 1))
+  local nosl = string.match(url, '^([^%?#]+[^/])$')
+  if nosl then
+    add_ignore(nosl .. '/')
+  end
+  add_ignore(string.match(url, '^(.+)/$'))
+end
+
+for ignore in io.open("ignore-list", "r"):lines() do
+  add_ignore(ignore)
 end
 
 read_file = function(file)
@@ -108,16 +140,6 @@ read_file = function(file)
     return ""
   end
 end
-
-io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
-
-do_debug = true
-print_debug = function(a)
-    if do_debug then
-        print(a)
-    end
-end
-print_debug("This grab script is running in debug mode. You should not see this in production.")
 
 
 allowed = function(url, parenturl)
@@ -134,12 +156,37 @@ allowed = function(url, parenturl)
     tested[s] = tested[s] + 1
   end
 
-  assert(false, "This segment should not be reachable")
+  -- 3rd party sites, unnecess
+  if string.match(url, '^https?://cdn%.jsdelivr%.net/')
+    or string.match(url, '^https?://[^/]%.twitter%.com/')
+    or string.match(url, '^https?://[^/]%.facebook%.net/')
+    or string.match(url, '^https?://[^/]%.pinterest%.com/')
+    or string.match(url, '^https?://[^/]%.launchdarkly%.com/')then
+    return false
+  end
+
+  -- Static
+  if string.match(url, '^https?://www%.tinkercad%.com/js/')
+    or string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/') -- TODO queue these to backfeed? Change frequently
+    or string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+$') then
+    return false
+  end
+
+  -- Etc
+  if string.match(url, '^https?://accounts%.autodesk%.com/') then
+    return false
+  end
+
+  --print_debug("Allowed true on " .. url)
+  return true -- DEBUG
+
+  --assert(false, "This segment should not be reachable")
 end
 
 
 wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_parsed, iri, verdict, reason)
   local url = urlpos["url"]["url"]
+  print_debug("DCP on " .. url)
   if downloaded[url] == true or addedtolist[url] == true then
     return false
   end
@@ -235,6 +282,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
 
   if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$")) then
     load_html()
+    print_debug("Len of html is " .. tostring(#html))
     for newurl in string.gmatch(string.gsub(html, "&quot;", '"'), '([^"]+)') do
       checknewurl(newurl)
     end
