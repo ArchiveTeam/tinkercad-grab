@@ -23,7 +23,7 @@ local url_sources = {}
 local current_item_type = nil
 local current_item_value = nil
 
-local options_downloaded = {} -- What URLS have had OPTIONS downloaded already
+local user_suffixes = {} -- Append these to the user ID (item value) to get one form of URL. May be empty.
 
 io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
 
@@ -288,19 +288,86 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
   end
 
+  local function get_slug_version(name)
+    name = string.gsub(name, ' ','-')
+    name = string.gsub(name, '[^%w%-]','')
+    local prev = nil
+    while prev ~= name do
+      prev = name
+      name = string.gsub(name, '%-%-','-')
+    end
+    name = string.sub(name, 1, 64)
+    name = string.lower(name)
+    return name
+  end
+
+  if (current_item_type == "user") and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value) and (status_code == 200) then
+    check("https://www.tinkercad.com/users/" .. current_item_value .. "?category=tinkercad&sort=likes&view_mode=default", true)
+    check("https://api-reader.tinkercad.com/users/" .. current_item_value)
+  end
+
   if (current_item_type == "user") and string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$") and status_code == 200 then
     load_html()
     local json = JSON:decode(html)
     if json["screen_name"] ~= nil then
-      local filtered_name = string.lower(string.gsub(json["screen_name"], " ", "-"))
+      local filtered_name = get_slug_version(json["screen_name"])
+      assert(filtered_name)
+      if filtered_name ~= "" then
+        user_suffixes[current_item_value] = "-" .. filtered_name
+      else
+        user_suffixes[current_item_value] = ""
+      end
       check("https://www.tinkercad.com/users/" .. current_item_value .. "-" .. filtered_name, true)
     end
   end
 
+  if (current_item_type == "user")
+     and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value .. "%?category=")
+     and (status_code == 200) then
+    local base = "https://www.tinkercad.com/users/" .. current_item_value
+    assert(user_suffixes[current_item_value])
+    local extended = base .. user_suffixes[current_item_value]
+    local duel = function(suffix)
+      check(base .. suffix, true)
+      check(extended .. suffix, true)
+    end
+
+    for _, type in pairs({"tinkercad", "circuits", "codeblocks"}) do
+      for _, sort in pairs({"likes", "popular", "latest"}) do
+        local suffix = "?category=" .. type .. "&sort=" .. sort .. "&view_mode=default"
+        check(base .. suffix, true)
+        check(extended .. suffix, true)
+        sort = ({latest="newest", popular="hot", likes="likes"})[sort] -- Different names in the API vs. the human URL
+        local endpoint = ({tinkercad="designs", circuits="designs", codeblocks="blocks"})[type]
+        check("https://api-reader.tinkercad.com/api/search/" .. endpoint .. "?offset=0&limit=24&type=" .. type .. "&sort=" .. sort .. "&userid=" .. current_item_value)
+      end
+    end
+  end
+
+  -- Queue next pages of the list XHR for user submissions list, if they exist
+  if (current_item_type == "user")
+    and string.match(url, "^https?://api%-reader%.tinkercad%.com/api/search/")
+    and status_code == 200 then
+    load_html()
+    local json = JSON:decode(html)
+    print_debug("Have recognized")
+    print_debug(json["limit"])
+    print_debug(json["offset"])
+    print_debug(json["totalCount"])
+    if json["limit"] + json["offset"] < json["totalCount"] then
+      print_debug("Am queuing more")
+      check((string.gsub(url, "offset=" .. tostring(json["offset"]), "offset=" .. tostring(json["offset"] + json["limit"]))))
+    end
+  end
+
+
+
+
 
   
 
-  if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$")) then
+  if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$"))
+    and not (string.match(url, "csg.*%.png%?")) then
     load_html()
     print_debug("Len of html is " .. tostring(#html))
     for newurl in string.gmatch(string.gsub(html, "&quot;", '"'), '([^"]+)') do

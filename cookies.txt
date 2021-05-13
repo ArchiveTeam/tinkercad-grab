@@ -1,4 +1,4 @@
-tinkercad.com  TRUE    /   FALSE   1638864000  LSES    D4C55015-088C-406C-8EE4-BDC584979261
+tinkercad.com	TRUE	/	FALSE	1638864000	LSES	D4C55015-088C-406C-8EE4-BDC584979261
 
 
 # Interesting further cookies to consider

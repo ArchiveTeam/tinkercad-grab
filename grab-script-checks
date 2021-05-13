@@ -16,5 +16,21 @@ some exact https://www.tinkercad.com/users/8kIV95Gu4GB-lucario-liz
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB
 some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t200.jpg # Avatar
 
+# Listing submissions
+some exact https://www.tinkercad.com/users/8kIV95Gu4GB?category=tinkercad&sort=likes&view_mode=default # Human-accessible page
+some exact https://api-reader.tinkercad.com/api/search/designs?offset=0&limit=24&type=tinkercad&sort=likes&userid=8kIV95Gu4GB # Corresponding XHR request
+
+# Next page - only XHR (human page stays the same)
+some exact https://api-reader.tinkercad.com/api/search/designs?offset=24&limit=24&type=tinkercad&sort=likes&userid=8kIV95Gu4GB
+# Page with nothing on it
+not exact https://api-reader.tinkercad.com/api/search/designs?offset=48&limit=24&type=tinkercad&sort=likes&userid=8kIV95Gu4GB
+
+# Other sorting orders etc.
+some exact https://www.tinkercad.com/users/8kIV95Gu4GB?category=tinkercad&sort=latest&view_mode=default
+some exact https://www.tinkercad.com/users/8kIV95Gu4GB-lucario-liz?category=circuits&sort=popular&view_mode=default
+some exact https://www.tinkercad.com/users/8kIV95Gu4GB-lucario-liz?category=tinkercad&sort=latest&view_mode=default
+some exact https://api-reader.tinkercad.com/api/search/designs?offset=0&limit=24&type=circuits&sort=newest&userid=8kIV95Gu4GB
+some exact https://api-reader.tinkercad.com/api/search/blocks?offset=0&limit=24&type=codeblocks&sort=newest&userid=8kIV95Gu4GB
+some exact https://api-reader.tinkercad.com/api/search/blocks?offset=0&limit=24&type=codeblocks&sort=likes&userid=8kIV95Gu4GB
 
 # TODO when to get https://api-reader.tinkercad.com/users (i.e. info on the currently logged-in user)?
