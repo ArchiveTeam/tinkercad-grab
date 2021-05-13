@@ -206,8 +206,10 @@ class WgetArgs(object):
             wget_args.append('item-name://' + item_name)
             item_type, item_value = item_name.split(':', 1)
             if item_type == "user":
+                assert not "-" in item_value
                 wget_args.extend(['--warc-header', 'tinkercad-user: ' + item_value])
                 wget_args.append(f'https://www.tinkercad.com/users/{item_value}')
+                wget_args.append(f'https://api-reader.tinkercad.com/users/{item_value}')
             elif item_type == "submission":
                 wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
                 wget_args.append(f'https://www.tinkercad.com/things/{item_value}')

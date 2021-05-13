@@ -61,6 +61,9 @@ set_new_item = function(url)
 
   -- Explicitly setting
   local user = string.match(url, "^https?://www%.tinkercad%.com/users/([^/%?#%-]+)$")
+  if user == nil then
+    user = string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$")
+  end
   if user ~= nil then
     current_item_type = "user"
     current_item_value = user
@@ -205,6 +208,14 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
 
   downloaded[url] = true
 
+  local function absolute(url, newurl)
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$") then
+      return urlparse.absolute(url, "/api" .. newurl)
+    else
+      return urlparse.absolute(url, newurl)
+    end
+  end
+
   local function check(urla, force)
     assert((not force) or (force == true)) -- Don't accidentally put something else for force
     local origurl = url
@@ -241,23 +252,23 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     elseif string.match(newurl, "^\\/") then
       checknewurl(string.gsub(newurl, "\\", ""))
     elseif string.match(newurl, "^//") then
-      check(urlparse.absolute(url, newurl))
+      check(absolute(url, newurl))
     elseif string.match(newurl, "^/") then
-      check(urlparse.absolute(url, newurl))
+      check(absolute(url, newurl))
     elseif string.match(newurl, "^%.%./") then
       if string.match(url, "^https?://[^/]+/[^/]+/") then
-        check(urlparse.absolute(url, newurl))
+        check(absolute(url, newurl))
       else
         checknewurl(string.match(newurl, "^%.%.(/.+)$"))
       end
     elseif string.match(newurl, "^%./") then
-      check(urlparse.absolute(url, newurl))
+      check(absolute(url, newurl))
     end
   end
 
   local function checknewshorturl(newurl)
     if string.match(newurl, "^%?") then
-      check(urlparse.absolute(url, newurl))
+      check(absolute(url, newurl))
     elseif not (string.match(newurl, "^https?:\\?/\\?//?/?")
       or string.match(newurl, "^[/\\]")
       or string.match(newurl, "^%./")
@@ -267,13 +278,22 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       or string.match(newurl, "^android%-app:")
       or string.match(newurl, "^ios%-app:")
       or string.match(newurl, "^%${")) then
-      check(urlparse.absolute(url, "/" .. newurl))
+      check(absolute(url, "/" .. newurl))
     end
   end
 
   local function load_html()
     if html == nil then
       html = read_file(file)
+    end
+  end
+
+  if (current_item_type == "user") and string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$") and status_code == 200 then
+    load_html()
+    local json = JSON:decode(html)
+    if json["screen_name"] ~= nil then
+      local filtered_name = string.lower(string.gsub(json["screen_name"], " ", "-"))
+      check("https://www.tinkercad.com/users/" .. current_item_value .. "-" .. filtered_name, true)
     end
   end
 
