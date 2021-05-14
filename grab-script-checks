@@ -10,6 +10,29 @@ not exact https://www.tinkercad.com/search
 not exact https://www.autodesk.com/company/legal-notices-trademarks/privacy-statement/childrens-privacy-statement
 not regex https?://tinkercad\.zendesk\.com/.*
 
+# User with both 3d and codeblocks, inactive
+[user:ad6ARDWs7PI]
+some exact https://www.tinkercad.com/users/ad6ARDWs7PI-shymarky4
+some discovered submission:dbtMrFKx0KA
+some discovered submission:57ftj798fDd
+some discovered submission:9byLYlZ0Zwv
+some exact https://api-reader.tinkercad.com/api/search/blocks?offset=0&limit=24&type=codeblocks&sort=likes&userid=ad6ARDWs7PI
+some exact https://www.tinkercad.com/users/ad6ARDWs7PI-shymarky4?category=codeblocks&sort=likes&view_mode=default
+some exact https://csg.tinkercad.com/blocks/film/9byLYlZ0Zwv/1581/t300?s=
+
+# User with circuits, active
+[user:jyPft91w7Yr]
+some exact https://www.tinkercad.com/users/jyPft91w7Yr
+some exact https://www.tinkercad.com/users/jyPft91w7Yr-ysabelle-castillo
+
+some exact https://csg.tinkercad.com/things/dr9mod47yGN/t725.png?rev=1619155346197000200&s=&v=1&type=circuits
+some exact https://api-reader.tinkercad.com/api/images/lkkobEEygNp/t300.jpg
+
+some discovered submission-lp:dr9mod47yGN
+some discovered submission-lp:3h4MWFGkHVW
+not discoveredregex submission:.*
+
+
 # TODO make user IDs only alphanumeric? Possible to check at all?
 [user:8kIV95Gu4GB]
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB-lucario-liz

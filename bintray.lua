@@ -366,15 +366,26 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
 
     -- Discover items
-    if json["designs"] ~= nil then
+    local list = json["designs"]
+    if list == nil then
+      list = json["blocks"]
+    end
+    if list ~= nil then
       assert(user_last_activity_time[current_item_value])
-      for _, design in pairs(json["designs"]) do
+      for _, design in pairs(list) do
         -- If later than (a date slightly before) January 1, 2000 (the cutoff), queue as low-priority
         -- Nanoseconds
         if user_last_activity_time[current_item_value] > 1577000000000000000 then
           discover_item("submission-lp", design["id"])
         else
           discover_item("submission", design["id"])
+        end
+        -- Extra images that may or may not exist
+        if (design["default_image_id"] ~= "-1") then
+          check("https://api-reader.tinkercad.com/api/images/" .. design["default_image_id"] .. "/t300.jpg")
+          check("https://api-reader.tinkercad.com/api/images/" .. design["default_image_id"] .. "/t75.jpg")
+          check("https://api-reader.tinkercad.com/api/images/" .. design["default_image_id"] .. "/t725.jpg")
+          check("https://api-reader.tinkercad.com/api/images/" .. design["profile_image_id"] .. "/t40.jpg?t=0")
         end
       end
     end
@@ -387,7 +398,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   
 
   if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$"))
-    and not (string.match(url, "csg.*%.png%?")) then
+    and not (string.match(url, "^https?://csg%.tinkercad%.com/")) then
     load_html()
     print_debug("Len of html is " .. tostring(#html))
     for newurl in string.gmatch(string.gsub(html, "&quot;", '"'), '([^"]+)') do
