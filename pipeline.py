@@ -199,7 +199,7 @@ class WgetArgs(object):
         item['item_name_newline'] = item['item_name'].replace('\0', '\n')
 
         item_names_to_submit = item_names.copy()
-        for item_name in item_names: # TODO dkip other types
+        for item_name in item_names:
             wget_args.extend(['--warc-header', 'x-wget-at-project-item-name: '+item_name])
             wget_args.append('item-name://' + item_name)
             item_type, item_value = item_name.split(':', 1)
@@ -207,15 +207,18 @@ class WgetArgs(object):
                 assert not "-" in item_value
                 wget_args.extend(['--warc-header', 'tinkercad-user: ' + item_value])
                 wget_args.append(f'https://www.tinkercad.com/users/{item_value}')
-            # elif item_type == "submission":
-            #     wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
-            #     wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
+            elif item_type == "submission":
+                 #wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
+                 #wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
+                 item_names_to_submit.remove(item_name)
             elif item_type == "asset":
                 assert item_value.startswith("http")
                 wget_args.extend(['--warc-header', 'tinkercad-asset: ' + item_value])
                 wget_args.append(item_value)
             else:
                 raise ValueError('item_type not supported.')
+
+            item['item_name'] = '\0'.join(item_names_to_submit)
 
         if 'bind_address' in globals():
             wget_args.extend(['--bind-address', globals()['bind_address']])
