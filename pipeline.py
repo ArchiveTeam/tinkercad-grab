@@ -209,9 +209,13 @@ class WgetArgs(object):
                 assert not "-" in item_value
                 wget_args.extend(['--warc-header', 'tinkercad-user: ' + item_value])
                 wget_args.append(f'https://www.tinkercad.com/users/{item_value}')
-            elif item_type == "submission":
-                wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
-                wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
+            # elif item_type == "submission":
+            #     wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
+            #     wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
+            elif item_type == "asset":
+                assert item_value.startswith("http")
+                wget_args.extend(['--warc-header', 'tinkercad-asset: ' + item_value])
+                wget_args.append(item_value)
             else:
                 raise ValueError('item_type not supported.')
 

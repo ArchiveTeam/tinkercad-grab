@@ -72,6 +72,13 @@ set_new_item = function(url)
     return
   end
 
+  if string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/') then
+    current_item_type = "asset"
+    current_item_value = url
+    print_debug("Setting current item to asset:" .. current_item_value .. " based on URL inference")
+    return
+  end
+
   -- Else
   print_debug("Current item fell through")
   current_item_value = nil
@@ -173,8 +180,12 @@ allowed = function(url, parenturl)
 
   -- Static
   if string.match(url, '^https?://www%.tinkercad%.com/js/')
-    or string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/') -- TODO queue these to backfeed? Change frequently
     or string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+$') then
+    return false
+  end
+  -- Change very often, capture them to make playback work
+  if string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/') then
+    discover_item("asset", url)
     return false
   end
 
@@ -183,8 +194,13 @@ allowed = function(url, parenturl)
     return false
   end
 
+  if current_item_type == ("asset") then
+    return false
+  end
+
+
   --print_debug("Allowed true on " .. url)
-  return true -- DEBUG
+  return true
 
   --assert(false, "This segment should not be reachable")
 end
@@ -461,7 +477,15 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
   local url_is_essential = false
 
   -- Whitelist instead of blacklist status codes
-  if status_code ~= 200 and status_code ~= 404 and not (status_code >= 300 and status_code <= 399) then
+  local is_valid_404 = string.match(url["url"], "^https?://csg%.tinkercad%.com/")
+                      or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.png$")
+                      or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.jpe?g%?")
+                      or string.match(url["url"], '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/')
+  local is_valid_403 = string.match(url["url"], '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/')
+  if status_code ~= 200
+          and not ((status_code == 404) and is_valid_404)
+          and not ((status_code == 403) and is_valid_403)
+          and not (status_code >= 300 and status_code <= 399) then
     print("Server returned " .. http_stat.statcode .. " (" .. err .. "). Sleeping.\n")
     do_retry = true
   end
