@@ -28,7 +28,7 @@ local user_last_activity_time = {} -- Timestamps of last user activity. user IDs
 
 io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
 
-do_debug = true
+do_debug = false
 print_debug = function(a)
   if do_debug then
     print(a)
