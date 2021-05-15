@@ -55,10 +55,9 @@ if not WGET_AT:
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
 VERSION = '20210324.01'
-#USER_AGENT = 'ArchiveTeam (https://wiki.archiveteam.org/; https://webirc.hackint.org/#ircs://irc.hackint.org/#tinkerhad)'
-USER_AGENT = 'Do not use this in production'
+USER_AGENT = 'ArchiveTeam (https://wiki.archiveteam.org/; https://webirc.hackint.org/#ircs://irc.hackint.org/#tinkerhad)'
+#USER_AGENT = 'Do not use this in production'
 TRACKER_ID = 'tinkercad'
-#TRACKER_HOST = 'legacy-api.arpa.li'
 TRACKER_HOST = "legacy-api.arpa.li"
 MULTI_ITEM_SIZE = 30
 
@@ -125,7 +124,7 @@ class PrepareDirectories(SimpleTask):
             time.strftime('%Y%m%d-%H%M%S')
         ])
 
-        open('%(item_dir)s/%(warc_file_base)s.warc.zst' % item, 'w').close()
+        open('%(item_dir)s/%(warc_file_base)s.warc.gz' % item, 'w').close()
         open('%(item_dir)s/%(warc_file_base)s_data.txt' % item, 'w').close()
 
 
@@ -134,8 +133,8 @@ class MoveFiles(SimpleTask):
         SimpleTask.__init__(self, 'MoveFiles')
 
     def process(self, item):
-        os.rename('%(item_dir)s/%(warc_file_base)s.warc.zst' % item,
-            '%(data_dir)s/%(warc_file_base)s.warc.zst' % item)
+        os.rename('%(item_dir)s/%(warc_file_base)s.warc.gz' % item,
+            '%(data_dir)s/%(warc_file_base)s.warc.gz' % item)
         os.rename('%(item_dir)s/%(warc_file_base)s_data.txt' % item,
             '%(data_dir)s/%(warc_file_base)s_data.txt' % item)
 
@@ -194,14 +193,13 @@ class WgetArgs(object):
             '--warc-header', 'x-wget-at-project-version: ' + VERSION,
             '--warc-header', 'x-wget-at-project-name: ' + TRACKER_ID,
             '--warc-dedup-url-agnostic',
-            '--warc-compression-use-zstd'
         ]
         
         item_names = item['item_name'].split('\0')
         item['item_name_newline'] = item['item_name'].replace('\0', '\n')
 
         item_names_to_submit = item_names.copy()
-        for item_name in item_names:
+        for item_name in item_names: # TODO dkip other types
             wget_args.extend(['--warc-header', 'x-wget-at-project-item-name: '+item_name])
             wget_args.append('item-name://' + item_name)
             item_type, item_value = item_name.split(':', 1)
@@ -260,7 +258,7 @@ pipeline = Pipeline(
         defaults={'downloader': downloader, 'version': VERSION},
         file_groups={
             'data': [
-                ItemInterpolation('%(item_dir)s/%(warc_file_base)s.warc.zst')
+                ItemInterpolation('%(item_dir)s/%(warc_file_base)s.warc.gz')
             ]
         },
         id_function=stats_id_function,
@@ -274,7 +272,7 @@ pipeline = Pipeline(
             downloader=downloader,
             version=VERSION,
             files=[
-                ItemInterpolation('%(data_dir)s/%(warc_file_base)s.warc.zst'),
+                ItemInterpolation('%(data_dir)s/%(warc_file_base)s.warc.gz'),
                 ItemInterpolation('%(data_dir)s/%(warc_file_base)s_data.txt')
             ],
             rsync_target_source_path=ItemInterpolation('%(data_dir)s/'),
