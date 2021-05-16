@@ -24,12 +24,25 @@ minrequests 1
 [[user:]]
 not regex https://editor\.tinkercad\.com/assets_[a-z0-9]+/.*
 
+# User with codeblocks, active
+[user:c9bT5rLD3Na]
+some exact https://www.tinkercad.com/users/c9bT5rLD3Na
+some exact https://www.tinkercad.com/users/c9bT5rLD3Na-master-of-all-cosmic-knowledge
+some discovered codeblock-lp:8lfVeHPp0Cq
+some discovered codeblock-lp:2litf5qLKWO
+some discovered codeblock-lp:0xtTSt38bU6
+not discoveredregex codeblocks:.*
+some exact https://api-reader.tinkercad.com/api/images/efNiYu9iSVK/t40.jpg?t=0
+some exact https://csg.tinkercad.com/blocks/film/i9SVwq7Gn1M/664/t300?s=
+some exact https://api-reader.tinkercad.com/api/search/blocks?offset=0&limit=24&type=codeblocks&sort=likes&userid=c9bT5rLD3Na
+some exact https://api-reader.tinkercad.com/users/c9bT5rLD3Na
+
 # User with both 3d and codeblocks, inactive
 [user:ad6ARDWs7PI]
 some exact https://www.tinkercad.com/users/ad6ARDWs7PI-shymarky4
 some discovered submission:dbtMrFKx0KA
 some discovered submission:57ftj798fDd
-some discovered submission:9byLYlZ0Zwv
+some discovered codeblock:9byLYlZ0Zwv
 some exact https://api-reader.tinkercad.com/api/search/blocks?offset=0&limit=24&type=codeblocks&sort=likes&userid=ad6ARDWs7PI
 some exact https://www.tinkercad.com/users/ad6ARDWs7PI-shymarky4?category=codeblocks&sort=likes&view_mode=default
 some exact https://csg.tinkercad.com/blocks/film/9byLYlZ0Zwv/1581/t300?s=
@@ -55,6 +68,7 @@ some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t200.jpg # Av
 # More avatars
 some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t75.jpg
 some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t40.jpg
+some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t40.jpg?t=0
 
 # Listing submissions
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB?category=tinkercad&sort=likes&view_mode=default # Human-accessible page

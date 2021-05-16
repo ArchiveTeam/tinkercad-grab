@@ -383,7 +383,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
 
     -- Discover items
     local list = json["designs"]
+    item_type = "submission"
     if list == nil then
+      item_type = "codeblock"
       list = json["blocks"]
     end
     if list ~= nil then
@@ -391,10 +393,11 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       for _, design in pairs(list) do
         -- If later than (a date slightly before) January 1, 2000 (the cutoff), queue as low-priority
         -- Nanoseconds
+
         if user_last_activity_time[current_item_value] > 1577000000000000000 then
-          discover_item("submission-lp", design["id"])
+          discover_item(item_type .. "-lp", design["id"])
         else
-          discover_item("submission", design["id"])
+          discover_item(item_type, design["id"])
         end
         -- Extra images that may or may not exist
         if (design["default_image_id"] ~= "-1") then
@@ -405,6 +408,10 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
         end
       end
     end
+  end
+
+  if string.match(url, "^https?://api%-reader%.tinkercad.com/api/images/.+/t40%.[^?/]+$") then
+    check(url .. "?t=0")
   end
 
 
