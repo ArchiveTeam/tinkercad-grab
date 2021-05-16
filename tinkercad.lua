@@ -347,10 +347,6 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     local base = "https://www.tinkercad.com/users/" .. current_item_value
     assert(user_suffixes[current_item_value])
     local extended = base .. user_suffixes[current_item_value]
-    local duel = function(suffix)
-      check(base .. suffix, true)
-      check(extended .. suffix, true)
-    end
 
     for _, type in pairs({"tinkercad", "circuits", "codeblocks"}) do
       for _, sort in pairs({"likes", "popular", "latest"}) do
@@ -414,7 +410,28 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     check(url .. "?t=0")
   end
 
-
+  -- Queue URLs accompanied by a ts param, with that param
+  if string.match(url, "^https?://api%-reader%.tinkercad%.com/users")
+    or string.match(url, "^https?://api%-reader%.tinkercad%.com/api/search/")
+    or string.match(url, "^https?://api%-reader%.tinkercad%.com/designs/detail/") then -- TODO also match codeblock detail JSONS
+    load_html()
+    print_debug("Match tsq")
+    check_obj = function(obj) -- Local apparently means it can't be found in the recursive step
+      if type(obj) ~= "table" then
+        return
+      end
+      print_debug("check_obj on " .. JSON:encode(obj))
+        for k, v in pairs(obj) do
+          if obj["ts"] ~= nil and k ~= "ts" and type(v) == "string" and string.match(v, "^https?://") then
+            print_debug("TS queue " .. v)
+            check(v .. "&ts=" .. tostring(obj["ts"]))
+          elseif type(v) == "table" then
+            check_obj(v)
+          end
+        end
+    end
+    check_obj(JSON:decode(html))
+  end
 
 
 
