@@ -427,6 +427,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
             check(v .. "&ts=" .. tostring(obj["ts"]))
           elseif type(v) == "table" then
             check_obj(v)
+          elseif k == "thumbnail_json" and type(v) == "string" then
+            -- Nested
+            check_obj(JSON:decode(v))
           end
         end
     end
