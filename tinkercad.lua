@@ -28,7 +28,7 @@ local user_last_activity_time = {} -- Timestamps of last user activity. user IDs
 
 io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
 
-do_debug = false
+do_debug = true
 print_debug = function(a)
   if do_debug then
     print(a)
@@ -76,6 +76,14 @@ set_new_item = function(url)
     current_item_type = "asset"
     current_item_value = url
     print_debug("Setting current item to asset:" .. current_item_value .. " based on URL inference")
+    return
+  end
+
+  local submission = string.match(url, "^https?://www%.tinkercad%.com/things/([^/%?#%-]+)$")
+  if submission then
+    current_item_type = "submission"
+    current_item_value = submission
+    print_debug("Setting current item to submission:" .. current_item_value .. " based on URL inference")
     return
   end
 
@@ -406,6 +414,31 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
   end
 
+
+  if (current_item_type == "submission") and (status_code == 200) then
+    if string.match(url, "^https?://www%.tinkercad%.com/things/" .. current_item_value) then
+      check("https://api-reader.tinkercad.com/designs/detail/" .. current_item_value)
+      check("https://api-reader.tinkercad.com/photos/designs/" .. current_item_value)
+    end
+
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/designs/detail/[^/%?#%-]+$") then
+      load_html()
+      local json = JSON:decode(html)
+      check("https://www.tinkercad.com/things/" .. current_item_value .. "-" .. get_slug_version(json["description"]))
+    end
+
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/photos/designs/") then
+      load_html()
+      local json = JSON:decode(html)
+      for _, v in pairs(json) do
+        check("https://api-reader.tinkercad.com/api/images/" .. v["id"] ..  "/t725.jpg")
+        check("https://api-reader.tinkercad.com/api/images/" .. v["id"] ..  "/t75.jpg")
+        -- TODO get an example with images where 725 is upscaling
+      end
+    end
+  end
+
+
   if string.match(url, "^https?://api%-reader%.tinkercad.com/api/images/.+/t40%.[^?/]+$") then
     check(url .. "?t=0")
   end
@@ -425,6 +458,8 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
           if obj["ts"] ~= nil and k ~= "ts" and type(v) == "string" and string.match(v, "^https?://") then
             print_debug("TS queue " .. v)
             check(v .. "&ts=" .. tostring(obj["ts"]))
+            -- Mostly for thumbnail_json - normally this will be queued anyway
+            check(v)
           elseif type(v) == "table" then
             check_obj(v)
           elseif k == "thumbnail_json" and type(v) == "string" then

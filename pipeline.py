@@ -208,9 +208,8 @@ class WgetArgs(object):
                 wget_args.extend(['--warc-header', 'tinkercad-user: ' + item_value])
                 wget_args.append(f'https://www.tinkercad.com/users/{item_value}')
             elif item_type == "submission":
-                 #wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
-                 #wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
-                 item_names_to_submit.remove(item_name)
+                 wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
+                 wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
             elif item_type == "asset":
                 assert item_value.startswith("http")
                 wget_args.extend(['--warc-header', 'tinkercad-asset: ' + item_value])
