@@ -11,6 +11,11 @@ not exact https://www.autodesk.com/company/legal-notices-trademarks/privacy-stat
 not regex https?://tinkercad\.zendesk\.com/.*
 
 ##############################
+# Soft 404
+[submission:kewsdm]
+maxrequests 1
+
+
 [submission:3TkQvER7cdY]
 # Basics
 some exact https://www.tinkercad.com/things/3TkQvER7cdY
@@ -57,6 +62,10 @@ minrequests 1
 #############################
 [[user:]]
 not regex https://editor\.tinkercad\.com/assets_[a-z0-9]+/.*
+
+# Hard 404
+[user:iwjrei]
+maxrequests 1
 
 # User with codeblocks, active
 [user:c9bT5rLD3Na]

@@ -328,7 +328,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     return name
   end
 
-  if (current_item_type == "user") and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value) and (status_code == 200) then
+  if (current_item_type == "user") and string.match(url, "^https?://www%.tinkercad%.com/users/" .. current_item_value) and (status_code == 200) then
     check("https://www.tinkercad.com/users/" .. current_item_value .. "?category=tinkercad&sort=likes&view_mode=default", true)
     check("https://api-reader.tinkercad.com/users/" .. current_item_value)
   end
@@ -417,6 +417,12 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
 
   if (current_item_type == "submission") and (status_code == 200) then
     if string.match(url, "^https?://www%.tinkercad%.com/things/" .. current_item_value) then
+      load_html()
+      -- Check for soft 404
+      if string.match(html, '<h2>Sorry, that page is missing</h2>') then
+        return {}
+      end
+
       check("https://api-reader.tinkercad.com/designs/detail/" .. current_item_value)
       check("https://api-reader.tinkercad.com/photos/designs/" .. current_item_value)
     end
@@ -590,6 +596,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
                       or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.png$")
                       or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.jpe?g%?")
                       or string.match(url["url"], '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/')
+                      or string.match(url["url"], '^https?://www%.tinkercad%.com/users/')
   local is_valid_403 = string.match(url["url"], '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/')
   if status_code ~= 200
           and not ((status_code == 404) and is_valid_404)
