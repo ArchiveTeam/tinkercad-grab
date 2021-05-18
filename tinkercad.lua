@@ -7,8 +7,8 @@ local http = require("socket.http")
 JSON = assert(loadfile "JSON.lua")()
 
 local item_name_newline = os.getenv("item_name_newline")
-local item_dir = os.getenv('item_dir')
-local warc_file_base = os.getenv('warc_file_base')
+local item_dir = os.getenv("item_dir")
+local warc_file_base = os.getenv("warc_file_base")
 
 local url_count = 0
 local tries = 0
@@ -19,7 +19,7 @@ local abortgrab = false
 
 discovered_items = {}
 local last_main_site_time = 0
-local url_sources = {}
+--local url_sources = {}
 local current_item_type = nil
 local current_item_value = nil
 
@@ -27,6 +27,12 @@ local user_suffixes = {} -- Append these to the user ID (item value) to get one 
 local user_last_activity_time = {} -- Timestamps of last user activity. user IDs -> timestamps
 
 io.stdout:setvbuf("no") -- So prints are not buffered - http://lua.2524044.n2.nabble.com/print-stdout-and-flush-td6406981.html
+
+if urlparse == nil or http == nil then
+  io.stdout:write("socket not corrently installed.\n")
+  io.stdout:flush()
+  abortgrab = true
+end
 
 do_debug = false
 print_debug = function(a)
@@ -45,7 +51,7 @@ set_new_item = function(url)
   print_debug("Trying to set item on " .. url)
 
   -- Previous
-  if url_sources[url] ~= nil then
+  --[[if url_sources[url] ~= nil then
     current_item_type = url_sources[url]["type"]
     current_item_value = url_sources[url]["value"]
     print_debug("Setting current item to " .. current_item_type .. ":" .. current_item_value .. " based on sources table")
@@ -58,13 +64,13 @@ set_new_item = function(url)
     print_debug("Used unescaped form to set item")
     print_debug("Setting current item to " .. current_item_type .. ":" .. current_item_value .. " based on sources table")
     return
-  end
+  end]]
 
   -- Explicitly setting
   local user = string.match(url, "^https?://www%.tinkercad%.com/users/([^/%?#%-]+)$")
-  if user == nil then
+  --[[if user == nil then
     user = string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$")
-  end
+  end]]
   if user ~= nil then
     current_item_type = "user"
     current_item_value = user
@@ -72,7 +78,7 @@ set_new_item = function(url)
     return
   end
 
-  if string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/') then
+  if string.match(url, "^https?://editor%.tinkercad%.com/assets_[a-z0-9]+") then
     current_item_type = "asset"
     current_item_value = url
     print_debug("Setting current item to asset:" .. current_item_value .. " based on URL inference")
@@ -80,13 +86,13 @@ set_new_item = function(url)
   end
 
   -- Else
-  print_debug("Current item fell through")
+  --[[print_debug("Current item fell through")
   current_item_value = nil
   current_item_type = nil
-  assert(false, "This should not happen")
+  assert(false, "This should not happen")]]
 end
 
-set_derived_url = function(dest)
+--[[set_derived_url = function(dest)
   if url_sources[dest] == nil then
     --print_debug("Derived " .. dest)
     url_sources[dest] = {type=current_item_type, value=current_item_value}
@@ -94,31 +100,22 @@ set_derived_url = function(dest)
       set_derived_url(urlparse.unescape(dest))
     end
     -- Wget adds a "/" to the end of param- and fragment-less paths that don't already have one
-    local withsl = string.match(dest, '^([^%?#]+[^/])$')
+    local withsl = string.match(dest, "^([^%?#]+[^/])$")
     if withsl ~= nil and withsl .. "/" ~= dest then
       set_derived_url(withsl .. "/")
     end
-  else
-    if url_sources[dest]["type"] ~= current_item_type
-      or url_sources[dest]["value"] ~= current_item_value then
-      print(current_item_type .. ":" .. current_item_value .. " wants " .. dest)
-      print("but it is already claimed by " .. url_sources[dest]["type"] .. ":" .. url_sources[dest]["value"])
-      assert(false)
-    end
+  elseif url_sources[dest]["type"] ~= current_item_type
+    or url_sources[dest]["value"] ~= current_item_value then
+    print(current_item_type .. ":" .. current_item_value .. " wants " .. dest)
+    print("but it is already claimed by " .. url_sources[dest]["type"] .. ":" .. url_sources[dest]["value"])
+    assert(false)
   end
-end
+end]]
 
 discover_item = function(item_type, item_name)
   assert(item_type)
   assert(item_name)
   discovered_items[item_type .. ":" .. item_name] = true
-end
-
-
-if urlparse == nil or http == nil then
-  io.stdout:write("socket not corrently installed.\n")
-  io.stdout:flush()
-  abortgrab = true
 end
 
 add_ignore = function(url)
@@ -130,13 +127,13 @@ add_ignore = function(url)
   else
     return
   end
-  add_ignore(string.gsub(url, '^https', 'http', 1))
-  add_ignore(string.gsub(url, '^http:', 'https:', 1))
-  local nosl = string.match(url, '^([^%?#]+[^/])$')
+  add_ignore(string.gsub(url, "^https", "http", 1))
+  add_ignore(string.gsub(url, "^http:", "https:", 1))
+  local nosl = string.match(url, "^([^%?#]+[^/])$")
   if nosl then
-    add_ignore(nosl .. '/')
+    add_ignore(nosl .. "/")
   end
-  add_ignore(string.match(url, '^(.+)/$'))
+  add_ignore(string.match(url, "^(.+)/$"))
 end
 
 for ignore in io.open("ignore-list", "r"):lines() do
@@ -154,7 +151,6 @@ read_file = function(file)
   end
 end
 
-
 allowed = function(url, parenturl)
   assert(parenturl ~= nil)
 
@@ -170,34 +166,32 @@ allowed = function(url, parenturl)
   end
 
   -- 3rd party sites, unnecess
-  if string.match(url, '^https?://cdn%.jsdelivr%.net/')
-    or string.match(url, '^https?://[^/]%.twitter%.com/')
-    or string.match(url, '^https?://[^/]%.facebook%.net/')
-    or string.match(url, '^https?://[^/]%.pinterest%.com/')
-    or string.match(url, '^https?://[^/]%.launchdarkly%.com/')then
+  if string.match(url, "^https?://cdn%.jsdelivr%.net/")
+    or string.match(url, "^https?://[^/]%.twitter%.com/")
+    or string.match(url, "^https?://[^/]%.facebook%.net/")
+    or string.match(url, "^https?://[^/]%.pinterest%.com/")
+    or string.match(url, "^https?://[^/]%.launchdarkly%.com/")then
     return false
   end
 
   -- Static
-  if string.match(url, '^https?://www%.tinkercad%.com/js/')
-    or string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+$') then
+  if string.match(url, "^https?://www%.tinkercad%.com/js/") then
     return false
   end
   -- Change very often, capture them to make playback work
-  if string.match(url, '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/') then
+  if string.match(url, "^https?://editor%.tinkercad%.com/assets_[a-z0-9]+") then
     discover_item("asset", url)
     return false
   end
 
   -- Etc
-  if string.match(url, '^https?://accounts%.autodesk%.com/') then
+  if string.match(url, "^https?://accounts%.autodesk%.com/") then
     return false
   end
 
-  if current_item_type == ("asset") then
+  if current_item_type == "asset" then
     return false
   end
-
 
   --print_debug("Allowed true on " .. url)
   return true
@@ -214,7 +208,7 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   end
   if allowed(url, parent["url"]) then
     addedtolist[url] = true
-    set_derived_url(url)
+    --set_derived_url(url)
     return true
   end
 
@@ -236,7 +230,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   end
 
   local function check(urla, force)
-    assert((not force) or (force == true)) -- Don't accidentally put something else for force
+    assert(not force or force == true) -- Don't accidentally put something else for force
     local origurl = url
     local url = string.match(urla, "^([^#]+)")
     local url_ = string.match(url, "^(.-)%.?$")
@@ -248,7 +242,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     if (downloaded[url_] ~= true and addedtolist[url_] ~= true)
       and (allowed(url_, origurl) or force) then
       table.insert(urls, { url=url_ })
-      set_derived_url(url_)
+      --set_derived_url(url_)
       addedtolist[url_] = true
       addedtolist[url] = true
     end
@@ -308,24 +302,28 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   end
 
   local function get_slug_version(name)
-    name = string.gsub(name, ' ','-')
-    name = string.gsub(name, '[^%w%-]','')
+    name = string.gsub(name, " ","-")
+    name = string.gsub(name, "[^%w%-]","")
     local prev = nil
     while prev ~= name do
       prev = name
-      name = string.gsub(name, '%-%-','-')
+      name = string.gsub(name, "%-%-","-")
     end
     name = string.sub(name, 1, 64)
     name = string.lower(name)
     return name
   end
 
-  if (current_item_type == "user") and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value) and (status_code == 200) then
+  if current_item_type == "user"
+    and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value)
+    and status_code == 200 then
     check("https://www.tinkercad.com/users/" .. current_item_value .. "?category=tinkercad&sort=likes&view_mode=default", true)
     check("https://api-reader.tinkercad.com/users/" .. current_item_value)
   end
 
-  if (current_item_type == "user") and string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$") and status_code == 200 then
+  if current_item_type == "user"
+    and string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$")
+    and status_code == 200 then
     load_html()
     local json = JSON:decode(html)
     if json["screen_name"] ~= nil then
@@ -335,15 +333,15 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     else
       user_suffixes[current_item_value] = ""
     end
-    check("https://www.tinkercad.com/users/" .. current_item_value ..user_suffixes[current_item_value], true)
+    check("https://www.tinkercad.com/users/" .. current_item_value .. user_suffixes[current_item_value], true)
 
     assert(json["mtime"])
     user_last_activity_time[current_item_value] = tonumber(json["mtime"])
   end
 
-  if (current_item_type == "user")
-     and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value .. "%?category=")
-     and (status_code == 200) then
+  if current_item_type == "user"
+    and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value .. "%?category=")
+    and status_code == 200 then
     local base = "https://www.tinkercad.com/users/" .. current_item_value
     assert(user_suffixes[current_item_value])
     local extended = base .. user_suffixes[current_item_value]
@@ -361,7 +359,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   end
 
   -- Queue next pages of the list XHR for user submissions list, if they exist
-  if (current_item_type == "user")
+  if current_item_type == "user"
     and string.match(url, "^https?://api%-reader%.tinkercad%.com/api/search/")
     and status_code == 200 then
     load_html()
@@ -396,7 +394,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
           discover_item(item_type, design["id"])
         end
         -- Extra images that may or may not exist
-        if (design["default_image_id"] ~= "-1") then
+        if design["default_image_id"] ~= "-1" then
           check("https://api-reader.tinkercad.com/api/images/" .. design["default_image_id"] .. "/t300.jpg")
           check("https://api-reader.tinkercad.com/api/images/" .. design["default_image_id"] .. "/t75.jpg")
           check("https://api-reader.tinkercad.com/api/images/" .. design["default_image_id"] .. "/t725.jpg")
@@ -435,10 +433,6 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
     check_obj(JSON:decode(html))
   end
-
-
-
-  
 
   if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$"))
     and not (string.match(url, "^https?://csg%.tinkercad%.com/")) then
@@ -481,8 +475,8 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
             or not allowed(newloc, url["url"]) then
       tries = 0
       return wget.actions.EXIT
-    else
-      set_derived_url(newloc)
+    --[[else
+      set_derived_url(newloc)]]
     end
   end
 
@@ -495,9 +489,6 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
     io.stdout:flush()
     return wget.actions.ABORT
   end
-
-  --
-
   
   local do_retry = false
   local maxtries = 12
@@ -505,14 +496,14 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
 
   -- Whitelist instead of blacklist status codes
   local is_valid_404 = string.match(url["url"], "^https?://csg%.tinkercad%.com/")
-                      or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.png$")
-                      or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.jpe?g%?")
-                      or string.match(url["url"], '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/')
-  local is_valid_403 = string.match(url["url"], '^https?://editor%.tinkercad%.com/assets_[a-z0-9]+/')
+    or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.png$")
+    or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.jpe?g%?")
+    or string.match(url["url"], "^https?://editor%.tinkercad%.com/assets_[a-z0-9]+")
+  local is_valid_403 = string.match(url["url"], "^https?://editor%.tinkercad%.com/assets_[a-z0-9]+")
   if status_code ~= 200
-          and not ((status_code == 404) and is_valid_404)
-          and not ((status_code == 403) and is_valid_403)
-          and not (status_code >= 300 and status_code <= 399) then
+    and not (status_code == 404 and is_valid_404)
+    and not (status_code == 403 and is_valid_403)
+    and not (status_code >= 300 and status_code <= 399) then
     print("Server returned " .. http_stat.statcode .. " (" .. err .. "). Sleeping.\n")
     do_retry = true
   end

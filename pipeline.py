@@ -58,7 +58,7 @@ VERSION = '20210324.01'
 USER_AGENT = 'ArchiveTeam (https://wiki.archiveteam.org/; https://webirc.hackint.org/#ircs://irc.hackint.org/#tinkerhad)'
 #USER_AGENT = 'Do not use this in production'
 TRACKER_ID = 'tinkercad'
-TRACKER_HOST = "legacy-api.arpa.li"
+TRACKER_HOST = 'legacy-api.arpa.li'
 MULTI_ITEM_SIZE = 30
 
 
@@ -203,16 +203,16 @@ class WgetArgs(object):
             wget_args.extend(['--warc-header', 'x-wget-at-project-item-name: '+item_name])
             wget_args.append('item-name://' + item_name)
             item_type, item_value = item_name.split(':', 1)
-            if item_type == "user":
-                assert not "-" in item_value
+            if item_type == 'user':
+                assert not '-' in item_value
                 wget_args.extend(['--warc-header', 'tinkercad-user: ' + item_value])
                 wget_args.append(f'https://www.tinkercad.com/users/{item_value}')
-            elif item_type == "submission":
+            elif item_type == 'submission':
                 #wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
                 #wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
                 item_names_to_submit.remove(item_name)
-            elif item_type == "asset":
-                assert item_value.startswith("http")
+            elif item_type == 'asset':
+                assert item_value.startswith('http')
                 wget_args.extend(['--warc-header', 'tinkercad-asset: ' + item_value])
                 wget_args.append(item_value)
             else:
