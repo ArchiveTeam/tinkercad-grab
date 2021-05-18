@@ -25,7 +25,9 @@ some regex https://editor\.tinkercad\.com/assets_[a-z0-9]+/.*
 some exact https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/polyfills.js
 maxrequests 1
 minrequests 1
-
+# Discovery
+some discovered https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/runtime.js
+some discovered https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/4.js
 
 
 [[user:]]
