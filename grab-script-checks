@@ -25,6 +25,20 @@ some exact https://api-reader.tinkercad.com/api/images/cB4rf41IfgV/t725.jpg
 some exact https://api-reader.tinkercad.com/api/images/4OVNMfFUzMF/t75.jpg
 some exact https://api-reader.tinkercad.com/api/images/3zrKY2SgNV5/t75.jpg
 some exact https://api-reader.tinkercad.com/api/images/cB4rf41IfgV/t75.jpg
+# View in 3d
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.json?m=1620927034692
+# Discovery of user
+some discovered user:0auXJENXzpj
+# Likes and comments
+some exact https://api-reader.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders/list_likes
+some exact https://api-reader.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders/list_comments
+some exact https://api-reader.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders/list_comments?expand_comments=1
+not exact https://api-reader.tinkercad.com/api/images/8bdhjY0tfUG/t40.jpg?t=0 # Profile image should be fetched from user page, not comment
+some discovered user:kB8nyoYtfIh # Second page
+some discovered user:29eHCf8Nf1e # First page
+not exact https://www.tinkercad.com/things/2Veh38R7BKh # Linked in the comments
+some discovered submission:2Veh38R7BKh # What should happen
+
 
 # TODO check that comments do not get linked submissions or user pages
 

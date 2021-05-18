@@ -96,7 +96,7 @@ end
 
 set_derived_url = function(dest)
   if url_sources[dest] == nil then
-    --print_debug("Derived " .. dest)
+    print_debug("Derived " .. dest)
     url_sources[dest] = {type=current_item_type, value=current_item_value}
     if urlparse.unescape(dest) ~= dest then
       set_derived_url(urlparse.unescape(dest))
@@ -424,7 +424,12 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     if string.match(url, "^https?://api%-reader%.tinkercad%.com/designs/detail/[^/%?#%-]+$") then
       load_html()
       local json = JSON:decode(html)
-      check("https://www.tinkercad.com/things/" .. current_item_value .. "-" .. get_slug_version(json["description"]))
+      local long_url_seg = current_item_value .. "-" .. get_slug_version(json["description"])
+      check("https://www.tinkercad.com/things/" .. long_url_seg)
+      check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.json?m=" .. json["mtime"]:sub(1, 13))
+      discover_item("user", json["user_id"])
+      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_likes")
+      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_comments")
     end
 
     if string.match(url, "^https?://api%-reader%.tinkercad%.com/photos/designs/") then
@@ -433,9 +438,49 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       for _, v in pairs(json) do
         check("https://api-reader.tinkercad.com/api/images/" .. v["id"] ..  "/t725.jpg")
         check("https://api-reader.tinkercad.com/api/images/" .. v["id"] ..  "/t75.jpg")
-        -- TODO get an example with images where 725 is upscaling
       end
     end
+
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_likes") then
+      load_html()
+      local json = JSON:decode(html)
+      for _, v in pairs(json) do
+        discover_item("user", v["senderUid"])
+      end
+    end
+
+    -- Specifically for the first page of comments
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments$") then
+      load_html()
+      local json = JSON:decode(html)
+      assert(json["HasMoreComments"] == true or json["HasMoreComments"] == false) -- Since if I've typod it or something, Lua will give nil
+      if json["HasMoreComments"] then
+        check(url .. "?expand_comments=1")
+      end
+    end
+
+    -- All pages of comments
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments") then
+      load_html()
+      local json = JSON:decode(html)
+      for _, v in pairs(json["Comments"]) do
+        discover_item("user", v["senderUid"])
+        for sub in string.gmatch(v["comment"], "tinkercad%.com/things/([a-zA-Z0-9]+)") do
+          discover_item("submission", sub)
+        end
+        for block in string.gmatch(v["comment"], "tinkercad%.com/codeblocks/([a-zA-Z0-9]+)") do
+          discover_item("codeblock", block)
+        end
+      end
+    end
+
+    -- Abort if one of my assumptions is false
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments%?") then
+      load_html()
+      local json = JSON:decode(html)
+      assert(not json["HasMoreComments"])
+    end
+
   end
 
 
@@ -476,7 +521,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   
 
   if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$"))
-    and not (string.match(url, "^https?://csg%.tinkercad%.com/")) then
+    and not string.match(url, "^https?://csg%.tinkercad%.com/")
+    and not string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments")
+    and not string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_likes") then
     load_html()
     print_debug("Len of html is " .. tostring(#html))
     for newurl in string.gmatch(string.gsub(html, "&quot;", '"'), '([^"]+)') do
