@@ -69,7 +69,7 @@ set_new_item = function(url)
   end]]
 
   -- Explicitly setting
-  local user = string.match(url, "^https?://www%.tinkercad%.com/users/([^/%?#%-]+)$")
+  local user = string.match(url, "^https?://www%.tinkercad%.com/users/([A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9])$")
   --[[if user == nil then
     user = string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$")
   end]]
@@ -196,6 +196,14 @@ allowed = function(url, parenturl)
 
   -- Etc
   if string.match(url, "^https?://accounts%.autodesk%.com/") then
+    return false
+  end
+
+  if current_item_type == "submission" and string.match(parenturl, "^https?://www%.tinkercad%.com/users/") then
+    return false
+  end
+
+  if parenturl == "https://api-reader.tinkercad.com/users" then
     return false
   end
 
@@ -467,6 +475,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       discover_item("user", json["user_id"])
       check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_likes")
       check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_comments")
+      check("https://api-reader.tinkercad.com/users") -- Breaks playback (viz. downloads) if not present
     end
 
     if string.match(url, "^https?://api%-reader%.tinkercad%.com/photos/designs/") then
@@ -502,6 +511,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       local json = JSON:decode(html)
       for _, v in pairs(json["Comments"]) do
         discover_item("user", v["senderUid"])
+        if not string.match(v["longUrl"], "^/users/[A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9]$") then
+            check("https://www.tinkercad.com" .. v["longUrl"])
+        end
         for sub in string.gmatch(v["comment"], "tinkercad%.com/things/([a-zA-Z0-9]+)") do
           discover_item("submission", sub)
         end

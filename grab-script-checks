@@ -2,7 +2,7 @@ format 0
 
 [[]]
 not regex .*view-source:.*
-not regex .{300,} # Huge URLs, incl. big JS libraries
+#not regex .{300,} # Huge URLs, incl. big JS libraries
 
 not exact https://www.tinkercad.com/things
 not exact https://www.tinkercad.com/search
@@ -11,9 +11,9 @@ not regex https?://tinkercad\.zendesk\.com/.*
 
 ##############################
 # Not implemented yet
-[submission:hRc2qq7VPV5]
-maxrequests 5
-not successful
+#[submission:hRc2qq7VPV5]
+#maxrequests 5
+#not successful
 
 
 # Soft 404
