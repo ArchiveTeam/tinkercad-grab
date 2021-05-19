@@ -1,35 +1,84 @@
 format 0
 
 [[]]
-successful
 not regex .*view-source:.*
-not regex .{300,} # Huge URLs, incl. big JS libraries
+#not regex .{300,} # Huge URLs, incl. big JS libraries
 
 not exact https://www.tinkercad.com/things
 not exact https://www.tinkercad.com/search
 not exact https://www.autodesk.com/company/legal-notices-trademarks/privacy-statement/childrens-privacy-statement
 not regex https?://tinkercad\.zendesk\.com/.*
 
-#[submission:4N6qQBHqcIZ]
-#some exact https://www.tinkercad.com/things/4N6qQBHqcIZ-fox-minifigure
-#some exact https://www.tinkercad.com/things/4N6qQBHqcIZ
+##############################
+# Not implemented yet
+#[submission:hRc2qq7VPV5]
+#maxrequests 5
+#not successful
 
-# Interesting below from details JSON - ts?
-#some exact https://csg.tinkercad.com/things/4N6qQBHqcIZ/t300-15.png?rev=1519057969279278935&s=&v=1","ts":1},"detailThumb":{"url":"https://csg.tinkercad.com/things/4N6qQBHqcIZ/t725.png?rev=1519057969279278935&s=&v=1","ts":1},"galleryThumb":{"url":"","ts":0}}
+
+# Soft 404
+[submission:kewsdm]
+successful
+maxrequests 1
 
 
+[submission:3TkQvER7cdY]
+successful
+# Basics
+some exact https://www.tinkercad.com/things/3TkQvER7cdY
+some exact https://www.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders
+some exact https://api-reader.tinkercad.com/designs/detail/3TkQvER7cdY
+# Non-3d photos and preview
+some exact https://api-reader.tinkercad.com/photos/designs/3TkQvER7cdY
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/t725.png?rev=1620927034692000000&s=&v=1
+some exact https://api-reader.tinkercad.com/api/images/4OVNMfFUzMF/t725.jpg
+some exact https://api-reader.tinkercad.com/api/images/3zrKY2SgNV5/t725.jpg
+some exact https://api-reader.tinkercad.com/api/images/cB4rf41IfgV/t725.jpg
+some exact https://api-reader.tinkercad.com/api/images/4OVNMfFUzMF/t75.jpg
+some exact https://api-reader.tinkercad.com/api/images/3zrKY2SgNV5/t75.jpg
+some exact https://api-reader.tinkercad.com/api/images/cB4rf41IfgV/t75.jpg
+# View in 3d
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.json?m=1620927034692
+# Discovery of user
+some discovered user:0auXJENXzpj
+# Likes and comments
+some exact https://api-reader.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders/list_likes
+some exact https://api-reader.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders/list_comments
+some exact https://api-reader.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders/list_comments?expand_comments=1
+not exact https://api-reader.tinkercad.com/api/images/8bdhjY0tfUG/t40.jpg?t=0 # Profile image should be fetched from user page, not comment
+some discovered user:kB8nyoYtfIh # Second page
+some discovered user:29eHCf8Nf1e # First page
+not exact https://www.tinkercad.com/things/2Veh38R7BKh # Linked in the comments
+some discovered submission:2Veh38R7BKh # What should happen
+# Downloads
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.stl?rev=-1
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.obj?rev=-1
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.gltf?rev=-1
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.usdz?rev=-1
+some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.svg?rev=-1
+
+
+
+#############################
 [[asset:]]
 some regex https://editor\.tinkercad\.com/assets_[a-z0-9]+/.*
+successful
 
 [asset:https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/polyfills.js]
 some exact https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/polyfills.js
 maxrequests 1
 minrequests 1
+# Discovery
+some discovered asset:https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/runtime.js
+some discovered asset:https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/4.js
 
-
-
+#############################
 [[user:]]
 not regex https://editor\.tinkercad\.com/assets_[a-z0-9]+/.*
+
+# Hard 404
+[user:iwjrei]
+maxrequests 1
 
 # User with codeblocks, active
 [user:c9bT5rLD3Na]
@@ -46,6 +95,7 @@ some exact https://api-reader.tinkercad.com/users/c9bT5rLD3Na
 
 # User with both 3d and codeblocks, inactive
 [user:ad6ARDWs7PI]
+successful
 some exact https://www.tinkercad.com/users/ad6ARDWs7PI-shymarky4
 some discovered submission:dbtMrFKx0KA
 some discovered submission:57ftj798fDd
@@ -69,6 +119,7 @@ not discoveredregex submission:.*
 
 
 [user:8kIV95Gu4GB]
+successful
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB-lucario-liz
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB
 some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t200.jpg # Avatar
@@ -111,3 +162,12 @@ some exact https://csg.tinkercad.com/things/aWDP1wpE4HW/t300-15.png?rev=15226605
 some exact https://csg.tinkercad.com/things/652ZCMRM6Pd/t300-15.png?rev=1522265783093000200&s=&v=1&ts=1
 
 # TODO when to get https://api-reader.tinkercad.com/users (i.e. info on the currently logged-in user)?
+
+# TODO https://www.tinkercad.com/things/1YXKt5UeHKn-tinkercad-project-check-the-comments-for-details many comments
+# TODO https://www.tinkercad.com/things/7rGgzU8eVBh-i-will-like-any-thing-u-put-in-the-comments links in comments to submissions
+# TODO https://www.tinkercad.com/things/akvlviyCN2j-minecraft-house-from-online-video-link-in-comments "remix from" works
+# TODO submissions from https://www.tinkercad.com/users/iG18HV0T1qy - non-ASCII names, contain - nonetheless
+# TODO model with 3d view as default
+# Would be helpful if these could come from other types
+
+# https://www.tinkercad.com/users/0GT03rkpNKB-kiwifruitben - user with all 3 types

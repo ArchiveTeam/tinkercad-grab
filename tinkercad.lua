@@ -23,6 +23,8 @@ local last_main_site_time = 0
 local current_item_type = nil
 local current_item_value = nil
 
+bad_items = {}
+
 local user_suffixes = {} -- Append these to the user ID (item value) to get one form of URL. May be empty.
 local user_last_activity_time = {} -- Timestamps of last user activity. user IDs -> timestamps
 
@@ -67,7 +69,7 @@ set_new_item = function(url)
   end]]
 
   -- Explicitly setting
-  local user = string.match(url, "^https?://www%.tinkercad%.com/users/([^/%?#%-]+)$")
+  local user = string.match(url, "^https?://www%.tinkercad%.com/users/([A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9])$")
   --[[if user == nil then
     user = string.match(url, "^https?://api%-reader%.tinkercad%.com/users/([^/%?#%-]+)$")
   end]]
@@ -82,6 +84,14 @@ set_new_item = function(url)
     current_item_type = "asset"
     current_item_value = url
     print_debug("Setting current item to asset:" .. current_item_value .. " based on URL inference")
+    return
+  end
+
+  local submission = string.match(url, "^https?://www%.tinkercad%.com/things/([^/%?#%-]+)$")
+  if submission then
+    current_item_type = "submission"
+    current_item_value = submission
+    print_debug("Setting current item to submission:" .. current_item_value .. " based on URL inference")
     return
   end
 
@@ -186,6 +196,14 @@ allowed = function(url, parenturl)
 
   -- Etc
   if string.match(url, "^https?://accounts%.autodesk%.com/") then
+    return false
+  end
+
+  if current_item_type == "submission" and string.match(parenturl, "^https?://www%.tinkercad%.com/users/") then
+    return false
+  end
+
+  if parenturl == "https://api-reader.tinkercad.com/users" then
     return false
   end
 
@@ -314,8 +332,17 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     return name
   end
 
+  if current_item_type == "asset" then
+    local type = string.match(url, '^https?://editor%.tinkercad%.com/(assets_[a-z0-9]+)/')
+    assert(type)
+    for line in io.open("assets.txt", "r"):lines() do
+      discover_item("asset", string.gsub(line, "{}", type))
+    end
+    return {}
+  end
+
   if current_item_type == "user"
-    and string.match(url, "https?://www%.tinkercad%.com/users/" .. current_item_value)
+    and string.match(url, "^https?://www%.tinkercad%.com/users/" .. current_item_value)
     and status_code == 200 then
     check("https://www.tinkercad.com/users/" .. current_item_value .. "?category=tinkercad&sort=likes&view_mode=default", true)
     check("https://api-reader.tinkercad.com/users/" .. current_item_value)
@@ -404,6 +431,108 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
   end
 
+
+  if current_item_type == "submission" and status_code == 200 then
+    if string.match(url, "^https?://www%.tinkercad%.com/things/" .. current_item_value) then
+      load_html()
+      -- Check for soft 404
+      if string.match(html, '<h2>Sorry, that page is missing</h2>') then
+        return {}
+      end
+
+      check("https://api-reader.tinkercad.com/designs/detail/" .. current_item_value)
+      check("https://api-reader.tinkercad.com/photos/designs/" .. current_item_value)
+    end
+
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/designs/detail/[^/%?#%-]+$") then
+      load_html()
+      local json = JSON:decode(html)
+
+      -- If it is derived from a previous submission
+      if json["src_id"] ~= nil then
+        discover_item("submission", json["src_id"])
+      end
+
+      if json["asm_type"] == "tinkercad" then
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.json?m=" .. json["mtime"]:sub(1, 13))
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.stl?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.obj?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.gltf?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.usdz?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.svg?rev=-1")
+
+      else
+        -- Circuit
+        --check("https://www.tinkercad.com/things/" .. current_item_value .. "/viewel")
+        --
+        print("This needs more work")
+        abortgrab = true
+      end
+
+      -- General
+      local long_url_seg = current_item_value .. "-" .. get_slug_version(json["description"])
+      check("https://www.tinkercad.com/things/" .. long_url_seg)
+      discover_item("user", json["user_id"])
+      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_likes")
+      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_comments")
+      check("https://api-reader.tinkercad.com/users") -- Breaks playback (viz. downloads) if not present
+    end
+
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/photos/designs/") then
+      load_html()
+      local json = JSON:decode(html)
+      for _, v in pairs(json) do
+        check("https://api-reader.tinkercad.com/api/images/" .. v["id"] ..  "/t725.jpg")
+        check("https://api-reader.tinkercad.com/api/images/" .. v["id"] ..  "/t75.jpg")
+      end
+    end
+
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_likes") then
+      load_html()
+      local json = JSON:decode(html)
+      for _, v in pairs(json) do
+        discover_item("user", v["senderUid"])
+      end
+    end
+
+    -- Specifically for the first page of comments
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments$") then
+      load_html()
+      local json = JSON:decode(html)
+      assert(json["HasMoreComments"] == true or json["HasMoreComments"] == false) -- Since if I've typod it or something, Lua will give nil
+      if json["HasMoreComments"] then
+        check(url .. "?expand_comments=1")
+      end
+    end
+
+    -- All pages of comments
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments") then
+      load_html()
+      local json = JSON:decode(html)
+      for _, v in pairs(json["Comments"]) do
+        discover_item("user", v["senderUid"])
+        if not string.match(v["longUrl"], "^/users/[A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9]$") then
+            check("https://www.tinkercad.com" .. v["longUrl"])
+        end
+        for sub in string.gmatch(v["comment"], "tinkercad%.com/things/([a-zA-Z0-9]+)") do
+          discover_item("submission", sub)
+        end
+        for block in string.gmatch(v["comment"], "tinkercad%.com/codeblocks/([a-zA-Z0-9]+)") do
+          discover_item("codeblock", block)
+        end
+      end
+    end
+
+    -- Abort if one of my assumptions is false
+    if string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments%?") then
+      load_html()
+      local json = JSON:decode(html)
+      assert(not json["HasMoreComments"])
+    end
+
+  end
+
+
   if string.match(url, "^https?://api%-reader%.tinkercad.com/api/images/.+/t40%.[^?/]+$") then
     check(url .. "?t=0")
   end
@@ -423,6 +552,8 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
           if obj["ts"] ~= nil and k ~= "ts" and type(v) == "string" and string.match(v, "^https?://") then
             print_debug("TS queue " .. v)
             check(v .. "&ts=" .. tostring(obj["ts"]))
+            -- Mostly for thumbnail_json - normally this will be queued anyway
+            check(v)
           elseif type(v) == "table" then
             check_obj(v)
           elseif k == "thumbnail_json" and type(v) == "string" then
@@ -435,7 +566,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   end
 
   if status_code == 200 and not (string.match(url, "jpe?g$") or string.match(url, "png$"))
-    and not (string.match(url, "^https?://csg%.tinkercad%.com/")) then
+    and not string.match(url, "^https?://csg%.tinkercad%.com/")
+    and not string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_comments")
+    and not string.match(url, "^https?://api%-reader%.tinkercad%.com/things/[^/]+/list_likes") then
     load_html()
     print_debug("Len of html is " .. tostring(#html))
     for newurl in string.gmatch(string.gsub(html, "&quot;", '"'), '([^"]+)') do
@@ -499,6 +632,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
     or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.png$")
     or string.match(url["url"], "^https?://api%-reader%.tinkercad%.com/api/.*%.jpe?g%?")
     or string.match(url["url"], "^https?://editor%.tinkercad%.com/assets_[a-z0-9]+")
+    or string.match(url["url"], "^https?://www%.tinkercad%.com/users/")
   local is_valid_403 = string.match(url["url"], "^https?://editor%.tinkercad%.com/assets_[a-z0-9]+")
   if status_code ~= 200
     and not (status_code == 404 and is_valid_404)
