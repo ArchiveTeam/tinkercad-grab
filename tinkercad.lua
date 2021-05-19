@@ -432,10 +432,30 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
       local json = JSON:decode(html)
       local long_url_seg = current_item_value .. "-" .. get_slug_version(json["description"])
       check("https://www.tinkercad.com/things/" .. long_url_seg)
-      check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.json?m=" .. json["mtime"]:sub(1, 13))
       discover_item("user", json["user_id"])
       check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_likes")
       check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_comments")
+
+      -- If it is derived from a previous submission
+      if json["src_id"] ~= nil then
+        discover_item("submission", json["src_id"])
+      end
+
+      if json["asm_type"] == "tinkercad" then
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.json?m=" .. json["mtime"]:sub(1, 13))
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.stl?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.obj?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.gltf?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.usdz?rev=-1")
+        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.svg?rev=-1")
+
+      else
+        -- Circuit
+        check("https://www.tinkercad.com/things/" .. current_item_value .. "/viewel")
+        --
+        print("This needs more work")
+        abortgrab = true
+      end
     end
 
     if string.match(url, "^https?://api%-reader%.tinkercad%.com/photos/designs/") then
