@@ -11,6 +11,11 @@ not exact https://www.autodesk.com/company/legal-notices-trademarks/privacy-stat
 not regex https?://tinkercad\.zendesk\.com/.*
 
 ##############################
+# Not implemented yet
+[submission:hRc2qq7VPV5]
+maxrequests 5
+
+
 # Soft 404
 [submission:kewsdm]
 maxrequests 1
