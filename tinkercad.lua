@@ -695,8 +695,7 @@ wget.callbacks.finish = function(start_time, end_time, wall_time, numurls, total
       local tries = 0
       while tries < 10 do
         local body, code, headers, status = http.request(
-          --"http://blackbird.arpa.li:23038/tinkercad-n9szj9md96micct/",
-                "http://example.com/",
+          "http://blackbird.arpa.li:23038/tinkercad-n9szj9md96micct/",
           to_send
         )
         if code == 200 or code == 409 then
