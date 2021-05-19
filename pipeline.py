@@ -54,11 +54,11 @@ if not WGET_AT:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = '20210324.01'
+VERSION = '20210518.01'
 USER_AGENT = 'ArchiveTeam (https://wiki.archiveteam.org/; https://webirc.hackint.org/#ircs://irc.hackint.org/#tinkerhad)'
 #USER_AGENT = 'Do not use this in production'
 TRACKER_ID = 'tinkercad'
-TRACKER_HOST = "legacy-api.arpa.li"
+TRACKER_HOST = 'legacy-api.arpa.li'
 MULTI_ITEM_SIZE = 30
 
 
@@ -185,7 +185,7 @@ class WgetArgs(object):
             '--page-requisites',
             '--timeout', '30',
             '--tries', 'inf',
-            '--domains', 'voat.co',
+            '--domains', 'tinkercad.com',
             '--span-hosts',
             '--waitretry', '30',
             '--warc-file', ItemInterpolation('%(item_dir)s/%(warc_file_base)s'),
@@ -203,15 +203,15 @@ class WgetArgs(object):
             wget_args.extend(['--warc-header', 'x-wget-at-project-item-name: '+item_name])
             wget_args.append('item-name://' + item_name)
             item_type, item_value = item_name.split(':', 1)
-            if item_type == "user":
-                assert not "-" in item_value
+            if item_type == 'user':
+                assert not '-' in item_value
                 wget_args.extend(['--warc-header', 'tinkercad-user: ' + item_value])
                 wget_args.append(f'https://www.tinkercad.com/users/{item_value}')
-            elif item_type == "submission":
+            elif item_type == 'submission':
                  wget_args.extend(['--warc-header', 'tinkercad-submission: ' + item_value])
                  wget_args.append(f'https://www.tinkercad.com/things/{item_value}')
-            elif item_type == "asset":
-                assert item_value.startswith("http")
+            elif item_type == 'asset':
+                assert item_value.startswith('http')
                 wget_args.extend(['--warc-header', 'tinkercad-asset: ' + item_value])
                 wget_args.append(item_value)
             else:
@@ -236,7 +236,7 @@ class WgetArgs(object):
 project = Project(
     title = 'tinkercad',
     project_html = '''
-    <img class="project-logo" alt="logo" src="https://wiki.archiveteam.org/images/Archiveteamsmall.png?959ea" height="50px"/>
+    <img class="project-logo" alt="logo" src="https://wiki.archiveteam.org/images/6/66/Tinkercad_icon.png" height="50px"/>
     <h2>Tinkercad <span class="links"><a href="https://www.tinkercad.com/">Website</a> &middot; <a href="http://tracker.archiveteam.org/tinkercad/">Leaderboard</a></span></h2>
     ''',)
 

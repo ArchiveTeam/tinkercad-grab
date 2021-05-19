@@ -1,6 +1,3 @@
-**This is not the final version; unless you are involved in the development of this project, you should not run this yet.**
-
-
 tinkercad-grab
 =============
 This is a script you can run to grab the Tinkercad site.
