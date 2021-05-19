@@ -54,7 +54,7 @@ if not WGET_AT:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = '20210518.01'
+VERSION = '20210519.01'
 USER_AGENT = 'ArchiveTeam (https://wiki.archiveteam.org/; https://webirc.hackint.org/#ircs://irc.hackint.org/#tinkerhad)'
 #USER_AGENT = 'Do not use this in production'
 TRACKER_ID = 'tinkercad'
