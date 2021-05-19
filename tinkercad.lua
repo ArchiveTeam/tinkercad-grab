@@ -198,11 +198,6 @@ allowed = function(url, parenturl)
   end
 
   if current_item_type == "asset" then
-    local type = string.match(url, '^https?://editor%.tinkercad%.com/(assets_[a-z0-9]+)/')
-    assert(type)
-    for line in io.open("assets.txt", "r"):lines() do
-      discover_item("asset", string.gsub(line, "{}", type))
-    end
     return false
   end
 
@@ -325,6 +320,15 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     name = string.sub(name, 1, 64)
     name = string.lower(name)
     return name
+  end
+
+  if current_item_type == "asset" then
+    local type = string.match(url, '^https?://editor%.tinkercad%.com/(assets_[a-z0-9]+)/')
+    assert(type)
+    for line in io.open("assets.txt", "r"):lines() do
+      discover_item("asset", string.gsub(line, "{}", type))
+    end
+    return {}
   end
 
   if current_item_type == "user"

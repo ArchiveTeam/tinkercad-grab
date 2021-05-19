@@ -61,8 +61,8 @@ some exact https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/pol
 maxrequests 1
 minrequests 1
 # Discovery
-some discovered https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/runtime.js
-some discovered https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/4.js
+some discovered asset:https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/runtime.js
+some discovered asset:https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/4.js
 
 #############################
 [[user:]]
