@@ -23,6 +23,8 @@ local last_main_site_time = 0
 local current_item_type = nil
 local current_item_value = nil
 
+bad_items = {}
+
 local user_suffixes = {} -- Append these to the user ID (item value) to get one form of URL. May be empty.
 local user_last_activity_time = {} -- Timestamps of last user activity. user IDs -> timestamps
 
@@ -437,11 +439,6 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     if string.match(url, "^https?://api%-reader%.tinkercad%.com/designs/detail/[^/%?#%-]+$") then
       load_html()
       local json = JSON:decode(html)
-      local long_url_seg = current_item_value .. "-" .. get_slug_version(json["description"])
-      check("https://www.tinkercad.com/things/" .. long_url_seg)
-      discover_item("user", json["user_id"])
-      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_likes")
-      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_comments")
 
       -- If it is derived from a previous submission
       if json["src_id"] ~= nil then
@@ -458,11 +455,19 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
 
       else
         -- Circuit
-        check("https://www.tinkercad.com/things/" .. current_item_value .. "/viewel")
+        --check("https://www.tinkercad.com/things/" .. current_item_value .. "/viewel")
         --
         print("This needs more work")
-        abortgrab = true
+        bad_items[current_item_type .. ":" .. current_item_value] = true
+        return {}
       end
+
+      -- General
+      local long_url_seg = current_item_value .. "-" .. get_slug_version(json["description"])
+      check("https://www.tinkercad.com/things/" .. long_url_seg)
+      discover_item("user", json["user_id"])
+      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_likes")
+      check("https://api-reader.tinkercad.com/things/" .. long_url_seg .. "/list_comments")
     end
 
     if string.match(url, "^https?://api%-reader%.tinkercad%.com/photos/designs/") then
@@ -693,6 +698,14 @@ wget.callbacks.finish = function(start_time, end_time, wall_time, numurls, total
       end
     end
   end
+
+
+  -- Stolen from urls-grab
+  local file = io.open(item_dir .. '/' .. warc_file_base .. '_bad-items.txt', 'w')
+  for item, _ in pairs(bad_items) do
+    file:write(item .. "\n")
+  end
+  file:close()
 end
 
 wget.callbacks.write_to_warc = function(url, http_stat)
