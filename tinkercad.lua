@@ -458,8 +458,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
         --check("https://www.tinkercad.com/things/" .. current_item_value .. "/viewel")
         --
         print("This needs more work")
-        bad_items[current_item_type .. ":" .. current_item_value] = true
-        return {}
+        abortgrab = true
       end
 
       -- General
@@ -684,7 +683,8 @@ wget.callbacks.finish = function(start_time, end_time, wall_time, numurls, total
       local tries = 0
       while tries < 10 do
         local body, code, headers, status = http.request(
-          "http://blackbird.arpa.li:23038/tinkercad-n9szj9md96micct/",
+          --"http://blackbird.arpa.li:23038/tinkercad-n9szj9md96micct/",
+                "http://example.com/",
           to_send
         )
         if code == 200 or code == 409 then
@@ -698,14 +698,6 @@ wget.callbacks.finish = function(start_time, end_time, wall_time, numurls, total
       end
     end
   end
-
-
-  -- Stolen from urls-grab
-  local file = io.open(item_dir .. '/' .. warc_file_base .. '_bad-items.txt', 'w')
-  for item, _ in pairs(bad_items) do
-    file:write(item .. "\n")
-  end
-  file:close()
 end
 
 wget.callbacks.write_to_warc = function(url, http_stat)

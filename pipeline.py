@@ -59,7 +59,7 @@ USER_AGENT = 'ArchiveTeam (https://wiki.archiveteam.org/; https://webirc.hackint
 #USER_AGENT = 'Do not use this in production'
 TRACKER_ID = 'tinkercad'
 TRACKER_HOST = 'legacy-api.arpa.li'
-MULTI_ITEM_SIZE = 30
+MULTI_ITEM_SIZE = 1
 
 
 ###########################################################################
@@ -125,7 +125,6 @@ class PrepareDirectories(SimpleTask):
         ])
 
         open('%(item_dir)s/%(warc_file_base)s.warc.gz' % item, 'w').close()
-        open('%(item_dir)s/%(warc_file_base)s_bad-items.txt' % item, 'w').close()
         open('%(item_dir)s/%(warc_file_base)s_data.txt' % item, 'w').close()
 
 
@@ -140,19 +139,6 @@ class MoveFiles(SimpleTask):
             '%(data_dir)s/%(warc_file_base)s_data.txt' % item)
 
         shutil.rmtree('%(item_dir)s' % item)
-
-
-class SetBadItems(SimpleTask):
-    def __init__(self):
-        SimpleTask.__init__(self, 'SetBadItems')
-
-    def process(self, item):
-        item['item_name_original'] = item['item_name']
-        items = item['item_name'].split('\0')
-        with open('%(item_dir)s/%(warc_file_base)s_bad-items.txt' % item, 'r') as f:
-            for item in f:
-                items.remove(f.rstrip())
-        item['item_name'] = '\0'.join(items)
 
 
 def get_hash(filename):
@@ -270,7 +256,6 @@ pipeline = Pipeline(
             'item_name_newline': ItemValue('item_name_newline'),
         }
     ),
-    SetBadItems(),
     PrepareStatsForTracker(
         defaults={'downloader': downloader, 'version': VERSION},
         file_groups={

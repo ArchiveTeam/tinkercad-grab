@@ -1,7 +1,6 @@
 format 0
 
 [[]]
-successful
 not regex .*view-source:.*
 not regex .{300,} # Huge URLs, incl. big JS libraries
 
@@ -14,14 +13,17 @@ not regex https?://tinkercad\.zendesk\.com/.*
 # Not implemented yet
 [submission:hRc2qq7VPV5]
 maxrequests 5
+not successful
 
 
 # Soft 404
 [submission:kewsdm]
+successful
 maxrequests 1
 
 
 [submission:3TkQvER7cdY]
+successful
 # Basics
 some exact https://www.tinkercad.com/things/3TkQvER7cdY
 some exact https://www.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomoriginal-not-copiedonly-cylinders
@@ -60,6 +62,7 @@ some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.svg?rev=-1
 #############################
 [[asset:]]
 some regex https://editor\.tinkercad\.com/assets_[a-z0-9]+/.*
+successful
 
 [asset:https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/polyfills.js]
 some exact https://editor.tinkercad.com/assets_3so6iv0/js/tinkercad-frontend/polyfills.js
@@ -92,6 +95,7 @@ some exact https://api-reader.tinkercad.com/users/c9bT5rLD3Na
 
 # User with both 3d and codeblocks, inactive
 [user:ad6ARDWs7PI]
+successful
 some exact https://www.tinkercad.com/users/ad6ARDWs7PI-shymarky4
 some discovered submission:dbtMrFKx0KA
 some discovered submission:57ftj798fDd
@@ -115,6 +119,7 @@ not discoveredregex submission:.*
 
 
 [user:8kIV95Gu4GB]
+successful
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB-lucario-liz
 some exact https://www.tinkercad.com/users/8kIV95Gu4GB
 some exact https://api-reader.tinkercad.com/api/images/dX6SDOzCTVf/t200.jpg # Avatar
