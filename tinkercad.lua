@@ -346,6 +346,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     and status_code == 200 then
     check("https://www.tinkercad.com/users/" .. current_item_value .. "?category=tinkercad&sort=likes&view_mode=default", true)
     check("https://api-reader.tinkercad.com/users/" .. current_item_value)
+    check("https://api-reader.tinkercad.com/users")
   end
 
   if current_item_type == "user"
@@ -625,7 +626,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
   
   local do_retry = false
   local maxtries = 12
-  local url_is_essential = false
+  local url_is_essential = true
 
   -- Whitelist instead of blacklist status codes
   local is_valid_404 = string.match(url["url"], "^https?://csg%.tinkercad%.com/")
@@ -642,8 +643,11 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
     do_retry = true
   end
 
-  url_is_essential = true
-  maxtries = 12
+  if string.match(url["url"], "%%5C$")
+    and addedtolist[string.gsub(url["url"], "%%5C$", "")] then
+    url_is_essential = false
+    maxtries = 2
+  end
 
 
   if do_retry then

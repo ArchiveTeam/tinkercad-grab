@@ -30,7 +30,7 @@ some exact https://www.tinkercad.com/things/3TkQvER7cdY-cobra-designcustomorigin
 some exact https://api-reader.tinkercad.com/designs/detail/3TkQvER7cdY
 # Non-3d photos and preview
 some exact https://api-reader.tinkercad.com/photos/designs/3TkQvER7cdY
-some exact https://csg.tinkercad.com/things/3TkQvER7cdY/t725.png?rev=1620927034692000000&s=&v=1
+some regex https://csg\\.tinkercad\\.com/things/3TkQvER7cdY/t725\\.png\\?rev=162\\d+&s=&v=1
 some exact https://api-reader.tinkercad.com/api/images/4OVNMfFUzMF/t725.jpg
 some exact https://api-reader.tinkercad.com/api/images/3zrKY2SgNV5/t725.jpg
 some exact https://api-reader.tinkercad.com/api/images/cB4rf41IfgV/t725.jpg
@@ -38,7 +38,7 @@ some exact https://api-reader.tinkercad.com/api/images/4OVNMfFUzMF/t75.jpg
 some exact https://api-reader.tinkercad.com/api/images/3zrKY2SgNV5/t75.jpg
 some exact https://api-reader.tinkercad.com/api/images/cB4rf41IfgV/t75.jpg
 # View in 3d
-some exact https://csg.tinkercad.com/things/3TkQvER7cdY/polysoup.json?m=1620927034692
+some regex https://csg\\.tinkercad\\.com/things/3TkQvER7cdY/polysoup\\.json\\?m=162\\d+
 # Discovery of user
 some discovered user:0auXJENXzpj
 # Likes and comments
