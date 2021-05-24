@@ -456,11 +456,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
 
       if json["asm_type"] == "tinkercad" then
         check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.json?m=" .. json["mtime"]:sub(1, 13))
-        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.stl?rev=-1")
-        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.obj?rev=-1")
         check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.gltf?rev=-1")
-        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.usdz?rev=-1")
-        check("https://csg.tinkercad.com/things/" .. current_item_value .. "/polysoup.svg?rev=-1")
 
       else
         -- Circuit
